@@ -1,0 +1,464 @@
+ont-size:6px;
+color:green;
+}
+td{
+vertical-align:top;
+background-color:white;
+}
+</style>
+<script type="text/javascript" src="khtml.js"> </script> 
+ 
+<script type="text/javascript"> 
+ 
+ 
+function init(){
+	//first map
+	map1=new kmap(document.getElementById("map1"));
+        var center=new kPoint(-33.42628,-70.56656);
+
+	map1.setCenter(center,9);
+
+
+	//second map
+        map2=new kmap(document.getElementById("map2"));
+        var nw=new kPoint(48,15.4);
+        var se=new kPoint(48.4,16.8);
+        var b=new kBounds(nw,se);
+        map2.setBounds(b);
+
+
+	//third map
+	map3=new kmap(document.getElementById("map3"));
+	var center=new kPoint(48.2,15.633);
+	map3.setCenter(center,9);
+
+        var flagcenter1=new kPoint(48.197231,15.645451);
+        var m=new kMarker(flagcenter1);
+        map3.addOverlay(m);
+        var flagcenter1=new kPoint(48.290231,15.605451);
+        var m=new kMarker(flagcenter1);
+        map3.addOverlay(m);
+
+
+	//second map
+	var centerLat=48.2;
+	var centerLon=15.633;
+
+	map4=new kmap(document.getElementById("map4"));
+	var center=new kPoint(centerLat,centerLon);
+	map4.setCenter(center,9);
+
+	//path
+	var lat=centerLat -0.2;
+	var lng=centerLon -0.2;
+        var points=new Array();
+        for(var i=0; i < 20; i++){
+                lat=lat+Math.random()/10 -0.02;
+                lng=lng+Math.random()/10 -0.02;
+                var point=new kPoint(lat,lng);
+                points.push(point);
+        }
+	var style=new kStyle();
+	style.addStyle("stroke","red");
+	style.addStyle("stroke-dasharray","8,4,3,4");
+	style.addStyle("stroke-width",4);
+        var line=new kPolyline(points,style);
+        map4.addOverlay(line);
+ 
+	map5=new kmap(document.getElementById("map5"));
+	var center=new kPoint(centerLat,centerLon);
+	map5.setCenter(center,9);
+
+	//area
+        var points=new Array();
+	points.push(new kPoint(48.290231,15.605451));
+	points.push(new kPoint(48.490231,15.605451));
+	points.push(new kPoint(48.490231,15.305451));
+	points.push(new kPoint(48.290231,15.305451));
+	points.push(new kPoint(48.290231,15.605451));
+	var style=new kStyle();
+	style.addStyle("stroke","black");
+	style.addStyle("fill","yellow");
+	style.addStyle("fill-opacity","0.4");
+	style.addStyle("stroke-width",2);
+        var line=new kPolyline(points,style);
+        map5.addOverlay(line);
+ 
+}
+
+
+//
+// END OF MAP Things
+//
+// Start of feedback
+//
+
+function sendfeedback(){
+	var name=quoteXml(document.getElementById("feedbackname").value);
+	var text=quoteXml(document.getElementById("feedbackarea").value);
+	var browser=quoteXml(navigator.userAgent);
+
+	var xml="<feedback><name>"+name+"</name><text>"+text+"</text><browser>"+browser+"</browser></feedback>";
+	var xmlhttp=new XMLHttpRequest();
+	xmlhttp.open("POST","savefeedback.php",true);
+	xmlhttp.onreadystatechange=function(){
+		if(xmlhttp.readyState==4){
+			document.getElementById("feedback").innerHTML=xmlhttp.responseText;
+		}
+	}
+	xmlhttp.send(xml);
+}
+
+function quoteXml (xmlStr) {
+	var result = xmlStr; //new EditableString(xmlStr);
+	result = result.replace(/</g, "&lt;");
+	result = result.replace(/>/g, "&gt;");
+<!--
+	result = result.replace(/\"/g, "&quot;");
+	result = result.replace(/'/g, "&apos;");
+	result = result.replace(/&/g, "&amp;");
+-->
+	return result;
+}
+
+</script>
+<title>khtml map lib</title>
+</head>
+<body onload="init()">
+<h2>khtmlcore map library</h2>
+<div style="font-size:10px">
+Licence:
+LGPL <br/>
+author: bernhard zwischenbrugger<br/>
+email: lbzwischenbrugger(at)fhstp(dot)ac(dot)at<br/>
+commercial support by author available<br/>
+version 0.34 <br/>
+code name: phnom penh;
+</div>
+<h4>Introduction</h4>
+<p>
+<a href="khtml.js">khtml.js</a> is a map library for web browsers and openstreetmap tiles.
+Target of this project is, to build a map library that is faster than
+google, bing, openlayers... librarys.
+</p>
+<p>
+It's optimized for speed and uses browser features like
+3D CSS (webkit). 
+</p>
+<p>
+It's a low level library that allows you to make librarys with more features or web application on   top of it. A central feature is  multitouch support for iphone.
+</p>
+<p>At the moment the lib has 40kByte and is one file (+ one flag image "<a href="images/flag.png">images/flag.png</a>) &lt;---- update pease.</p>
+<h4>Open the map in normal Browser</h4>
+<a href="http://www.khtml.org/iphonemap/simple.html"/>open map</a>
+<br/>
+<br/>
+Please use mousewheel.<br/>
+<img src="images/wheel.jpg"/>
+<h4>Open the map in iPhone</h4>
+<img src="images/qr.png"/><br/>
+or type the link address in iPhone URL.<br/>
+http://www.khtml.org/iphonemap/simple.html
+<br/>
+<br/>
+<br/>
+<br/>
+For iPhone fullscreen:<br/>
+<img src="images/homescreen.png"/>
+<h4>Status</h4>
+<ul>
+<li>
+Alpha, API can still be discussed (give feedback)<br/>
+</li>
+<li>
+Optimized for webkit browsers including iPhone
+</li>
+<li>
+Internet Explorer and Android Browser not supported (maybe IE 9.0 will support SVG);
+
+</li>
+</ul>
+<h4>API</h4>
+All maps shown on this page are active. <br/>
+Mouse: drag/drop, mousewheel for zoom;<br/>
+touchscreen:one finger move map, two finger monkey grip for zoom,
+<table border="0" cellpadding="10px">
+<tr>
+<td>
+<div id="map1" style="width:400px;height:300px;border:1px solid black">
+</div>
+</td>
+<td>
+<h5>Initialize with setCenter</h5>
+<pre>
+...
+&lt;script type="text/javascript" src="<a href="khtml.js">khtml.js</a>"> &lt;/script>
+&lt;script type="text/javascript">
+function init(){
+        map1=new kmap(document.getElementById("map1"));
+        var center=new kPoint(48.2,15.633);
+        map1.setCenter(center,9);
+
+}
+&lt;/script>
+&lt;/head>
+&lt;body onload="init()">
+&lt;div id="map1" style="widht:100px;height:100px"> &lt;/div>
+...
+</pre>
+</td>
+</tr>
+<tr>
+<td>
+<div id="map2" style="width:400px;height:300px;border:1px solid black">
+</div>
+</td>
+<td>
+<h5>Initialize with setBounds</h5>
+<pre>
+...
+&lt;script type="text/javascript" src="khtml.js"> &lt;/script>
+&lt;script type="text/javascript">
+function init(){
+        map2=new kmap(document.getElementById("map2"));
+        var nw=new kPoint(48,15.4);
+        var se=new kPoint(48.4,16.8);
+        var b=new kBounds(nw,se);
+        map2.setBounds(b);
+
+
+}
+&lt;/script>
+&lt;/head>
+&lt;body onload="init()">
+&lt;div id="map1" style="widht:100px;height:100px"> &lt;/div>
+...
+</pre>
+</td>
+</tr>
+<tr>
+<td>
+<div id="map3" style="width:400px;height:300px;border:1px solid black">
+</td>
+<td>
+<h5>Markers</h5>
+<img src="images/flag.png"/>
+<pre>
+	...	
+        var flagcenter1=new kPoint(48.290231,15.605451);
+        var m=new kMarker(flagcenter1);
+        map2.addOverlay(m);
+	...
+</pre>
+<h5>Status</h5>
+<ul>
+<li>Partly implemented;</li>
+<li>Marker is not clickable;< (no API available)/li>
+<li>Flag image src is set to "images/flag.png".</li>
+</ul>
+</td>
+</tr>
+
+<tr>
+<td>
+<div id="map4" style="width:400px;height:300px;border:1px solid black">
+</td>
+<td>
+<h5>Path</h5>
+<pre>
+        var lat=centerLat -0.2;
+        var lng=centerLon -0.2;
+        var points=new Array();
+        for(var i=0; i < 20; i++){
+                lat=lat+Math.random()/10 -0.02;
+                lng=lng+Math.random()/10 -0.02;
+                var point=new kPoint(lat,lng);
+                points.push(point);
+        }
+        var style=new kStyle();
+        style.addStyle("stroke","red");
+        style.addStyle("stroke-dasharray","8,4,3,4");
+        style.addStyle("stroke-width",4);
+        var line=new kPolyline(points,style);
+        map4.addOverlay(line);
+
+</pre>
+</td>
+
+</tr>
+
+<tr>
+<td>
+<div id="map5" style="width:400px;height:300px;border:1px solid black">
+</td>
+<td>
+<h5>Area</h5>
+<pre>
+        ...
+        var points=new Array();
+        points.push(new kPoint(48.290231,15.605451));
+        points.push(new kPoint(48.490231,15.605451));
+        points.push(new kPoint(48.490231,15.305451));
+        points.push(new kPoint(48.290231,15.305451));
+        points.push(new kPoint(48.290231,15.605451));
+        var style=new kStyle();
+        style.addStyle("stroke","black");
+        style.addStyle("fill","yellow");
+        style.addStyle("fill-opacity","0.4");
+        style.addStyle("stroke-width",2);
+        var line=new kPolyline(points,style);
+        map5.addOverlay(line);
+
+	...
+
+</pre>
+<h5>Status</h5>
+JSON  style parameters for style would be maybe nice.
+</td>
+
+</tr>
+
+
+<tr>
+<td colspan="2">
+<br/>
+<br/>
+<br/>
+<h5>More methodes</h5>
+<pre>
+map.renderOverlays();   //for refreshing overlays if your app needs
+
+
+map.setCenter(point,zoom);
+
+
+var point=map.getCenter();
+
+
+map.setBounds(point1,point2);
+
+
+var bounds=map.getBouns();
+
+
+var zoom=map.getZoom();
+
+
+var lat=point.getLat();
+
+
+var lng=point.getLng();
+
+
+var pointNW=bounds.getNW();
+
+
+var pointSE=bounds.getSE();
+
+
+var centerPoint=bounds.getCenter();
+
+
+var bounds=kBounds(pointNW,pointSE);
+
+
+var distance=bounds.getDistance();  //distance from NW to SE in Meter
+
+</pre>
+
+</td>
+</tr>
+</table>
+
+<h4>Improvements</h4>
+I was working now one week on vector graphic speed improvement .
+It will be fast with up to at least 100 SVG lines, target is much more.
+If you are interested in thesting that onwebkit you are welcome.
+Send me a ping.
+</td>
+<h4>Browser support</h4>
+Mouse wheel has different speed on different plattforms. <br/>
+No idea how to solve this problem.
+<br/>
+<br/>
+<table style="background-color:lightgrey">
+<tr>
+<td>Webkit (chrome, safari)</td><td>Very fast zoom if images are in cache. Image loading not optimizable (<a target="_blank" href="https://bugs.webkit.org/show_bug.cgi?id=6656">webkit bug details</a>)</td>
+</tr><tr>
+<td>Firefox</td><td>3D CSS missing, "zoom" function for div buggy and slow: not usable, normal image zoom in use</td>
+</tr><tr>
+<td>iPhone</td><td>see Webkit, excellent Moultitouch!!</td>
+</tr><tr>
+<td>Internet Explorer</td><td> Not tested. SVG will not work at all. VML would be an relative easy task. Drawing a path should be not more than 10 lines code. The line styles must be transformed to Microsoft syntax.  </td></tr>
+</tr><tr>
+<td>Opera</td><td>3D CSS missing -> slow</td>
+</tr><tr>
+<td>Konqueror</td><td>3D CSS missing -> slow</td>
+</tr>
+</table>
+
+<h4>Browser developer</h4>
+If a browser have 3d css support, the map can be much faster.
+Webkit browsers are good on that 
+but there is this images load bug:
+<a target="_blank" href="https://bugs.webkit.org/show_bug.cgi?id=6656">(webkit bug details</a>).
+3D CSS support is detected by inspecting the user agent string. 
+</td>
+
+<h4>What does it do</h4>
+<ul>
+<li><a href="http://de.wikipedia.org/wiki/World_Geodetic_System_1984">WGS 84</a> (GPS Coordinates) interface.
+<li>Draw the map: setCenter(point,zoomlevel)</li>
+<li>Mouse and touchscreen event handling</li>
+<li>Draw lines on the map </li>
+<li>Draw areas on the map </li>
+<li>Draw markers (partly implemented; API idea?)</li>
+<li>Should provides a stable lowlevel API. If an other javascript geek want's to beet the speed, a simple API should enable the programmer to replace this API with a fster one.</li>
+</ul>
+
+
+<h4>ToDo</h4>
+<ul>
+<li>Make it faster</li>
+<li>More flexible marker system</li>
+<li>Enable cyclemap, OSMA Layer,...</li>
+<li>getBounds() has a mistake (getNE is stupid)</li>
+<li>doubleclick for zoom </li>
+</ul>
+<h4>What will not be part of this lib</h4>
+This things can be made on top of this lib.
+<ul>
+<li>GPX import</li>
+<li>routing</li>
+<li>GPS Things</li>
+<li>Namefinder</li>
+</ul>
+This are all things that can be done outside of this lib.
+
+<h4>The Code</h4>
+<p>
+Handling millions of images and place it highspeed on the browser window is not an easy task.
+Browsers do things in a diffent way and Browsers have bugs.
+Webkit has excellent image zoom but a bad image loading bug.
+</p>
+<p>
+I tried to implement this library 5 times and started every time completly new.
+Many parts of the code are not easy readable. 
+<br/>
+<br/>
+Some parts of the code like marker handling should be readable by skilled javascript programmers.
+The xy2latlng ,latlng2xy methods are a bit tricky and maybe buggy.
+<br/>
+<br/>
+If you want to help me to  do the hardcore things and optimize speed, than welcome in hell.
+<h4>Browser Cache</h4>
+On fast Internet this map viewer should be much faster than the current 
+viewer on osm.org (openlayer). Openlayer is a wunderfull product. It can easieliy compete with google maps api. But it's slow. Maybe it's possible to add this layer to openlayers as a low level browser api. A layer on top of the OSI 7 layer map model. Hey you are nosi! Why do you read that? here is the <a href="/beta/page.html">alpha version</a> of http://www.khtml.org. For this Cache thing look at <a href="http://www.mail-archive.com/talk@openstreetmap.org/msg27895.html">mail thread</a>
+
+
+<br/>
+
+btw.: I didn't reveerse engeneer google maps or bing engine. I had a look at google maps api code. But I didn't understand anything at all. Also openlayers I didn't understand. Maybe my programcode is ugly. But I can compete with google and co ;-)
+
+</body>
+</html>
