@@ -380,7 +380,9 @@ function kmap(map){
 	}
 	this.renderOverlays=function(){
 		this.overlayDiv.style.display="";	
-		this.svg.style.display="";	
+		if(!this.internetExplorer){
+			this.svg.style.display="";	
+		}
 		var that=this;
 		for(obj in this.overlays){
 			this.overlays[obj].render(that);
@@ -389,7 +391,9 @@ function kmap(map){
 
 	this.hideOverlays=function(){
 		this.overlayDiv.style.display="none";	
-		this.svg.style.display="none";	
+		if(!this.internetExplorer){
+			this.svg.style.display="none";	
+		}
 		/*
 		for(obj in this.overlays){
 	//		this.overlays[obj].hide();
@@ -433,7 +437,11 @@ function kmap(map){
 //
 
 this.start=function(evt){
-        evt.preventDefault();
+        if(evt.preventDefault){
+		evt.preventDefault(); // The W3C DOM way
+	} else {
+		evt.returnValue = false; // The IE way
+	}
 	this.hideOverlays();
         if(evt.touches.length ==1){
                 this.startMoveX=this.moveX - evt.touches[0].pageX /this.faktor /this.sc;
@@ -467,7 +475,11 @@ this.start=function(evt){
 }
 
 this.move=function(evt){
-        evt.preventDefault();
+        if(evt.preventDefault){
+		evt.preventDefault(); // The W3C DOM way
+	} else {
+		evt.returnValue = false; // The IE way
+	}
 
 //	this.mousedownTime=null;
         if(evt.touches.length ==1){
@@ -528,7 +540,11 @@ this.move=function(evt){
 }
 
 this.end=function(evt){
-        evt.preventDefault();
+        if(evt.preventDefault){
+		evt.preventDefault(); // The W3C DOM way
+	} else {
+		evt.returnValue = false; // The IE way
+	}
 	window.clearInterval(this.zoomOutInterval);
 	this.zoomOutStarted=false;
         if(evt.touches.length==0){
@@ -549,7 +565,11 @@ this.end=function(evt){
 //
 
 this.mousedown=function(evt){
-        evt.preventDefault();
+        if(evt.preventDefault){
+		evt.preventDefault(); // The W3C DOM way
+	} else {
+		window.event.returnValue = false; // The IE way
+	}
 
 	if(this.mousedownTime2!=null){
 		var now=(new Date()).getTime();
@@ -594,10 +614,16 @@ this.mousedown=function(evt){
 		this.startMoveY=this.moveY - (evt.pageY - this.mapTop)  /this.faktor/this.sc;
 		this.movestarted=true;
 	}
+	return false;
 }
 
 this.mousemove=function(evt){
-        evt.preventDefault();
+
+        if(evt.preventDefault){
+		evt.preventDefault(); // The W3C DOM way
+	} else {
+		window.event.returnValue = false; // The IE way
+	}
 	this.mousedownTime2=0; //if it's moved it's not a doubleclick
 	if(this.distanceMeasuring){
 		if(this.moveMarker){
@@ -654,9 +680,14 @@ this.mousemove=function(evt){
 			this.setCenter(center,this.zoom);
 		}
 	}
+	return false;
 }
 this.mouseup=function(evt){
-        evt.preventDefault();
+        if(evt.preventDefault){
+		evt.preventDefault(); // The W3C DOM way
+	} else {
+		evt.returnValue = false; // The IE way
+	}
 	if(this.moveMarker){
 		this.moveMarker=null;
 	}
@@ -708,7 +739,11 @@ this.normalize=function(){
 //
 
 this.mousewheel=function(evt){
-        evt.preventDefault();
+        if(evt.preventDefault){
+		evt.preventDefault(); // The W3C DOM way
+	} else {
+		evt.returnValue = false; // The IE way
+	}
 
 	
         if (!evt) /* For IE. */
@@ -1143,7 +1178,7 @@ this.mousewheel=function(evt){
 		
 			if(this.css3dvector){
 			//var svg=document.createElementNS("http://www.w3.org/2000/svg","svg");
-			var svg=document.createElementNS("http://www.w3.org/1999/xhtml","div");
+			var svg=document.createElement("div");
 			svg.style.top=-this.svgHeight/2;
 			svg.style.left=-this.svgWidth/2;
 			svg.style.zIndex=1;
@@ -1509,7 +1544,11 @@ this.mousewheel=function(evt){
 	// method is called if an image has finished loading  (onload event)
 	//
         this.imgLoaded=function(evt){
-                var img=evt.target;
+		if(evt.target){
+			var img=evt.target;
+		}else{
+			var img=evt.srcElement;
+		}
 		var loadComplete=true;
 		img.style.visibility="";
 		img.setAttribute("loaded","yes");
@@ -1556,7 +1595,7 @@ this.mousewheel=function(evt){
 	this.setMapPosition=function(){
 		var obj=this.mapParent;
 		this.clone.style.width=obj.offsetWidth+"px";
-		this.clone.style.height=obj.offsetheight+"px";
+		this.clone.style.height=obj.offsetHeight+"px";
 		var left=0;
 		var top=0;
 		do {
@@ -1582,7 +1621,13 @@ this.mousewheel=function(evt){
 	//  INIT kmap
 	//
 	//
-	
+
+	this.internetExplorer=false;
+        if(navigator.userAgent.indexOf("MSIE")!=-1){
+                this.internetExplorer=true;
+		//alert("Sorry, Internet Explorer does not support this map, please use a good Browser like chrome, safari, opera.");
+        }
+
 	this.maxIntZoom=18;
         this.mapParent=map;
 	mapInit=map;
@@ -1627,12 +1672,14 @@ this.mousewheel=function(evt){
         this.overlayDiv.style.overflow="hidden";
 	map.appendChild(this.overlayDiv);
 
-        this.svg=document.createElementNS("http://www.w3.org/2000/svg","svg");
-        this.svg.style.width=this.width;
-        this.svg.style.height=this.height;
-        this.svg.style.position="absolute";
-	map.appendChild(this.svg);
-        map.style.overflow="hidden";
+	if(!this.internetExplorer){
+		this.svg=document.createElementNS("http://www.w3.org/2000/svg","svg");
+		this.svg.style.width=this.width;
+		this.svg.style.height=this.height;
+		this.svg.style.position="absolute";
+		map.appendChild(this.svg);
+		map.style.overflow="hidden";
+	}
 /*
         map.ontouchstart=start;
         window.ontouchmove=move;
@@ -1681,18 +1728,22 @@ this.mousewheel=function(evt){
         if(navigator.userAgent.indexOf("Safari")!=-1){
                 this.css3d=true;
         }
-        //alert(navigator.userAgent);
 
-
-	Event.attach(window,"resize",this.getSize,this,false);
+	if(this.internetExplorer){
+		var w=map;
+	}else{
+		var w=window;
+		// how to do that in ie?
+		Event.attach(window,"resize",this.getSize,this,false);
+	}
 	Event.attach(map,"touchstart",this.start,this,false);
 	Event.attach(map,"touchmove",this.move,this,false);
-	Event.attach(window,"touchend",this.end,this,false);
-	Event.attach(map,"DOMMouseScroll",this.mousewheel,this,false);
-	Event.attach(window,"mousemove",this.mousemove,this,false);
+	Event.attach(w,"touchend",this.end,this,false);
+	Event.attach(w,"mousemove",this.mousemove,this,false);
 	Event.attach(map,"mousedown",this.mousedown,this,false);
-	Event.attach(window,"mouseup",this.mouseup,this,false);
-	Event.attach(window,"orientationchange",this.reSize,this,false);
+	Event.attach(w,"mouseup",this.mouseup,this,false);
+	Event.attach(w,"orientationchange",this.reSize,this,false);
+	Event.attach(map,"DOMMouseScroll",this.mousewheel,this,false);
 }
 
 
