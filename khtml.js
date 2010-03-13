@@ -837,6 +837,7 @@ this.mousewheel=function(evt){
 		var zoom=this.zoom + dzoom;
 		if(zoomGap){
 			zoom=Math.round(zoom);
+			dzoom=z;
 		}
 
 		faktor=Math.pow(2,zoom);
@@ -1359,8 +1360,8 @@ this.mousewheel=function(evt){
 				default: var server="f";
 			}
 				
-//                        var src="http://"+server+".tile.openstreetmap.org/"+intZoom+"/"+xx+"/"+yy+".png";
-                        var src="/iphonemapproxy/imgproxy.php?url=http://"+server+".tile.openstreetmap.org/"+intZoom+"/"+xx+"/"+yy+".png";
+                        var src="http://"+server+".tile.openstreetmap.org/"+intZoom+"/"+xx+"/"+yy+".png";
+//                        var src="/iphonemapproxy/imgproxy.php?url=http://"+server+".tile.openstreetmap.org/"+intZoom+"/"+xx+"/"+yy+".png";
 				//see imageproxy.php for offline map usage
 
 			//var n=mkbin(intZoom,xxx,yyy);
