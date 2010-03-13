@@ -449,13 +449,14 @@ this.start=function(evt){
 		if(this.mousedownTime!=null){	
 			var now=(new Date()).getTime();
 			if(now - this.mousedownTime < this.doubleclickTime){
-				this.autoZoomIn(evt.touches[0].pageX,evt.touches[0].pageY,1);	
+				var zoomD=Math.ceil(0.01+this.getZoom());
+				this.autoZoomIn(evt.touches[0].pageX,evt.touches[0].pageY,zoomD);	
 			}
 		}
 		this.mousedownTime=(new Date()).getTime();
 		var that=this;
 		var tempFunction=function () {that.autoZoomOut()};
-                this.zoomOutInterval=window.setInterval(tempFunction,50);
+                this.zoomOutInterval=window.setInterval(tempFunction,20);
         }
 		
         if(evt.touches.length ==2){
@@ -574,7 +575,9 @@ this.mousedown=function(evt){
 	if(this.mousedownTime2!=null){
 		var now=(new Date()).getTime();
 		if(now - this.mousedownTime2 < this.doubleclickTime2){
-			this.autoZoomIn(evt.pageX -this.mapLeft,evt.pageY -this.mapTop,1);
+			var zoom=this.getZoom();
+			var zoomD=Math.ceil(0.01+this.getZoom())-zoom;
+			this.autoZoomIn(evt.pageX -this.mapLeft,evt.pageY -this.mapTop,zoomD);
 		}
 	}
 	this.mousedownTime2=(new Date()).getTime();
@@ -618,13 +621,12 @@ this.mousedown=function(evt){
 }
 
 this.mousemove=function(evt){
-
         if(evt.preventDefault){
 		evt.preventDefault(); // The W3C DOM way
 	} else {
 		window.event.returnValue = false; // The IE way
 	}
-	this.mousedownTime2=0; //if it's moved it's not a doubleclick
+	//this.mousedownTime2=0; //if it's moved it's not a doubleclick
 	if(this.distanceMeasuring){
 		if(this.moveMarker){
 			this.normalize();
@@ -677,6 +679,7 @@ this.mousemove=function(evt){
 			this.moveX=(evt.pageX - this.mapLeft) / this.faktor/this.sc + this.startMoveX;
 			this.moveY=(evt.pageY - this.mapTop) / this.faktor/this.sc + this.startMoveY;
 			var center=new kPoint(this.lat,this.lng);
+			//alert(evt.pageX);
 			this.setCenter(center,this.zoom);
 		}
 	}
@@ -770,7 +773,14 @@ this.mousewheel=function(evt){
 	}
 	var oldzoom=this.zoom;
 	var dzoom=delta *this.zoomSpeed * this.zoomSpeedAcceleration;
-	var zoom=this.zoom+dzoom;
+        fak=30;
+
+        var dzoom=delta/timeDelta* fak;
+
+        if(!isNaN(dzoom)){
+		var zoom=this.zoom+dzoom;
+        }
+
 	if(zoom < 1){
 		zoom=1;
 		dzoom=0;
@@ -801,12 +811,20 @@ this.mousewheel=function(evt){
 
 	this.autoZoomIn=function(x,y,z){
 		if(z < 0){
+			//alert(this.getZoom());
 			this.renderOverlays();
 			return;
+		}
+		zoomGap=false;
+		if(z < 0.1){
+			zoomGap=true;
 		}
 		this.hideOverlays();
 		var dzoom=0.1;
 		var zoom=this.zoom + dzoom;
+		if(zoomGap){
+			zoom=Math.round(zoom);
+		}
 
 		faktor=Math.pow(2,zoom);
 		var zoomCenterDeltaX=x   -this.width/2;
@@ -824,8 +842,10 @@ this.mousewheel=function(evt){
 		this.setCenter(center,zoom);
 		var newz=z - dzoom;
 		var that=this;
+		if(!zoomGap){
 		var tempFunction=function () {that.autoZoomIn(x,y,newz)};
-                window.setTimeout(tempFunction,40);
+		window.setTimeout(tempFunction,40);
+		}
 		
 	}
 
@@ -1324,8 +1344,8 @@ this.mousewheel=function(evt){
 				default: var server="f";
 			}
 				
-                        var src="http://"+server+".tile.openstreetmap.org/"+intZoom+"/"+xx+"/"+yy+".png";
-//                        var src="/iphonemapproxy/imgproxy.php?url=http://"+server+".tile.openstreetmap.org/"+intZoom+"/"+xx+"/"+yy+".png";
+//                        var src="http://"+server+".tile.openstreetmap.org/"+intZoom+"/"+xx+"/"+yy+".png";
+                        var src="/iphonemapproxy/imgproxy.php?url=http://"+server+".tile.openstreetmap.org/"+intZoom+"/"+xx+"/"+yy+".png";
 				//see imageproxy.php for offline map usage
 
 			//var n=mkbin(intZoom,xxx,yyy);
