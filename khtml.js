@@ -17,7 +17,6 @@ function kStyle(){
 	this.addStyle=function(name,value){
 		var style=new Array(name,value);
 		this.arrayStyle.push(style);
-//		alert(arrayStyle.length);
 	}
 	this.setClassName=function(name){
 		this.myClass=name;	
@@ -25,10 +24,10 @@ function kStyle(){
 	this.getClassName=function(name){
 		return this.myClass;	
 	}
-	this.removeStyle=function(name,value){
+	this.removeStyle=function(name){
 		//not implemented
 	}
-	this.removeAllStyles=function(name,value){
+	this.removeAllStyles=function(){
 		//not implemented
 	}
 	this.getArray=function(){
@@ -95,8 +94,8 @@ function kRect(bounds){
 		this.render(mapObj);
 	}
 	this.render=function(mapObj){
-		var p1=this.bounds.getNW();
-		var p2=this.bounds.getSE();
+		var p1=this.bounds.getSW();
+		var p2=this.bounds.getNE();
 		var xy1=mapObj.latlngToXY(p1);
 		var xy2=mapObj.latlngToXY(p2);
 		//console.log(xy1["x"]+":"+xy1["y"]+":"+xy2["x"]+":"+xy2["y"]);
@@ -314,26 +313,26 @@ function kPoint(lat,lng){
 // instead of nw, se there should be sw,ne 
 //
 
-function kBounds(nw,se){
-	this.nw=nw;
-	this.se=se;
-	this.center=new kPoint((nw.getLat() +se.getLat())/2, (nw.getLng() +se.getLng())/2);
-	this.getNW=function(){
-		return this.nw;
+function kBounds(sw,ne){
+	this.sw=sw;
+	this.ne=ne;
+	this.center=new kPoint((sw.getLat() +ne.getLat())/2, (sw.getLng() +ne.getLng())/2);
+	this.getSW=function(){
+		return this.sw;
 	}
-	this.getSE=function(){
-		return this.se;
+	this.getNE=function(){
+		return this.ne;
 	}
 	this.getCenter=function(){
 		return this.center;
 	}
 	this.getDistance=function(){
-		return distance(this.nw.getLat(),this.nw.getLng(),this.se.getLat(),this.se.getLng());
+		return distance(this.sw.getLat(),this.sw.getLng(),this.ne.getLat(),this.ne.getLng());
 	}
 
 	this.getInnerRadius=function(){
-		var w=distance(this.center.getLat(),this.nw.getLng(),this.center.getLat(),this.se.getLng());	
-		var h=distance(this.nw.getLat(),this.center.getLng(),this.se.getLat(),this.center.getLng());	
+		var w=distance(this.center.getLat(),this.sw.getLng(),this.center.getLat(),this.ne.getLng());	
+		var h=distance(this.sw.getLat(),this.center.getLng(),this.ne.getLat(),this.center.getLng());	
 		if(w > h){
 			return h/2;
 		}else{
@@ -601,7 +600,11 @@ this.mousedown=function(evt){
 
 	if(evt.shiftKey){
 		this.selectRectLeft=evt.pageX - this.mapLeft;
-		this.selectRectTop=evt.pageY - this.mapTop;
+                this.selectRectTop=evt.pageY - this.mapTop;
+
+
+
+//		this.distanceStartpoint=this.XYTolatlng(-this.mapLeft + evt.pageX,this.mapTop+this.height - evt.pageY);
 
 		this.selectRect=document.createElement("div");
 		this.selectRect.style.left=this.selectRectLeft+"px";
@@ -672,7 +675,7 @@ this.mousemove=function(evt){
 	if(evt.shiftKey){
 		if(this.selectRect){
 			this.selectRect.style.width=evt.pageX - this.mapLeft - this.selectRectLeft+"px";
-			this.selectRect.style.height=evt.pageY - this.mapTop - this.selectRectTop+"px";
+			this.selectRect.style.height=evt.pageY - this.mapTop - this.selectRectTop +"px";
 		}
 	}else{
 		if(this.movestarted){
@@ -695,9 +698,19 @@ this.mouseup=function(evt){
 		this.moveMarker=null;
 	}
 	if(this.selectRect){
-		var p1=this.XYTolatlng(parseInt(this.selectRect.style.left),parseInt(this.selectRect.style.top));
-		var p2=this.XYTolatlng(parseInt(this.selectRect.style.left) + parseInt(this.selectRect.style.width),parseInt(this.selectRect.style.top) + parseInt(this.selectRect.style.height));
+		var p1=this.XYTolatlng(this.selectRect.offsetLeft ,this.height - this.selectRect.offsetTop -this.selectRect.offsetHeight );
+		var p2=this.XYTolatlng(this.selectRect.offsetLeft +this.selectRect.offsetWidth,this.height - this.selectRect.offsetTop  );
+		/*
+		var pp1=new kMarker(p1,"green");
+		this.addOverlay(pp1);
+
+		var pp2=new kMarker(p2,"green");
+		this.addOverlay(pp2);
+		*/
+
+
                 var bounds=new kBounds(p1,p2);
+		//alert(p1.getLat()+":"+p1.getLng()+":"+p2.getLat()+":"+p2.getLng());
 		this.setBounds(bounds);
 		this.selectRect.parentNode.removeChild(this.selectRect);			
 		this.selectRect=null;
@@ -918,6 +931,7 @@ this.mousewheel=function(evt){
 		var p1=this.XYTolatlng(0,0);
 		var p2=this.XYTolatlng(this.width,this.height);    
 		var bounds=new kBounds(p1,p2);
+	//	alert(p1.getLat()+":"+p1.getLng()+":"+p2.getLat()+":"+p2.getLng());
 		return bounds;
 	}
 
@@ -927,8 +941,8 @@ this.mousewheel=function(evt){
 
 	this.setBounds=function(b){
 		this.getSize();
-		var p1=b.getNW();
-		var p2=b.getSE();
+		var p1=b.getSW();
+		var p2=b.getNE();
 		var center=b.getCenter();
 		var xy1=getTileNumber(p1.getLat(),p1.getLng(),0);
 		var xy2=getTileNumber(p2.getLat(),p2.getLng(),0);
@@ -944,6 +958,7 @@ this.mousewheel=function(evt){
 		if(zoom > 18){
 			zoom=18;
 		}
+		zoom=zoom+1;
 		this.setCenter(center,zoom);
 		this.setMapPosition();
 
