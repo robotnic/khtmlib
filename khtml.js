@@ -5,6 +5,8 @@
 //  LGPL Bernhard Zwischenbrugger
 //  http://www.khtml.org/iphonemap/help.php
 //
+//  css3vector should bring more speed for vector graphics in webkit (disabled because of bugs)
+//
 
 
 //
@@ -504,7 +506,7 @@ function kmap(map){
 						this.mousedownTime=null;
 					}
 					var center=new kPoint(this.lat,this.lng);
-					this.setCenter(center,this.zoom);
+					this.setCenter2(center,this.zoom);
 				}
 			}else{
 				//alert("no move");
@@ -545,7 +547,7 @@ function kmap(map){
 			//document.getElementById("debug").textContent=x+":"+y+": "+dx+":"+dy+": "+this.startMoveX+":"+f+zoomDelta;
 
 			var center=new kPoint(this.lat,this.lng);
-			this.setCenter(center,zz);
+			this.setCenter2(center,zz);
 		}
 	}
 
@@ -693,7 +695,7 @@ function kmap(map){
 				this.moveY=(evt.pageY - this.mapTop) / this.faktor/this.sc + this.startMoveY;
 				var center=new kPoint(this.lat,this.lng);
 				//alert(evt.pageX);
-				this.setCenter(center,this.zoom);
+				this.setCenter2(center,this.zoom);
 			}
 		}
 		return false;
@@ -814,7 +816,7 @@ function kmap(map){
 		this.moveX=this.moveX+dx /faktor;
 		this.moveY=this.moveY+dy /faktor;
 
-		this.setCenter(this.center,zoom);	
+		this.setCenter2(this.center,zoom);	
 		this.renderOverlays();
 
 	}
@@ -854,7 +856,7 @@ function kmap(map){
 
 
 		var center=new kPoint(this.lat,this.lng);
-		this.setCenter(center,zoom);
+		this.setCenter2(center,zoom);
 		var newz=z - dzoom;
 		var that=this;
 		if(!zoomGap){
@@ -875,7 +877,7 @@ function kmap(map){
 				this.zoomOutStarted=true;
 				var center=new kPoint(this.lat,this.lng);
 				var zoom=this.zoom - this.zoomOutSpeed;
-				this.setCenter(center,zoom);
+				this.setCenter2(center,zoom);
 				this.zoomOutSpeed=this.zoomOutSpeed * 1.01;
 			}
 		}
@@ -885,16 +887,35 @@ function kmap(map){
 	//
 	//  Set the map coordinates and zoom
 	//
+
+
 	this.setCenter=function(center,zoom){
+		this.moveX=0;
+		this.moveY=0;
+		document.getElementById("debug").textContent=this.moveX+":"+this.moveY;
 		this.record();
 		this.executeCallbackFunctions();
 		this.setCenterNoLog(center,zoom);
 	}
 
+	// same as setCenter but moveX,moveY are not reset (for internal use)
+
+	this.setCenter2=function(center,zoom){
+		//document.getElementById("debug").textContent=this.moveX+":"+this.moveY;
+		this.record();
+		this.executeCallbackFunctions();
+		this.setCenterNoLog(center,zoom);
+	}
+
+
 	//
 	// same as setCenter but no history item is generated (for undo, redo)
 	//
 	this.setCenterNoLog=function(center,zoom){
+		/*
+		this.moveX=0;
+		this.moveY=0;
+		*/
 		var zoom=parseFloat(zoom);
 		this.center=center;		
 		this.zoom=zoom;	
@@ -1120,6 +1141,8 @@ function kmap(map){
 		var item=this.recordArray[i];
 		var center=new kPoint(item[0],item[1]);
 		//undo,redo must not generate history items
+		this.moveX=0;
+		this.moveY=0;
 		this.setCenterNoLog(center,item[2]);
 	}
 
@@ -1190,11 +1213,12 @@ function kmap(map){
 	
 	This function draws one layer. It is highly opimized for iPhone. 
 	Please DO NOT CHANGE things except you want to increase speed!
+	For opimization you need a benchmark test.
 
 	How it works:
 	The position of the images is fixed.
 	The layer (not the images) is moved because of better performance
-	Even zooming does not change position of the images.
+	Even zooming does not change position of the images, if 3D CSS is active (webkit).
 
 	this method uses "this.layers" , "this.oldIntZoom", "this.width", "this.height";
 	
@@ -1350,8 +1374,8 @@ function kmap(map){
 				default: var server="f";
 			}
 				
-                        var src="http://"+server+".tile.openstreetmap.org/"+intZoom+"/"+xx+"/"+yy+".png";
-//                        var src="/iphonemapproxy/imgproxy.php?url=http://"+server+".tile.openstreetmap.org/"+intZoom+"/"+xx+"/"+yy+".png";
+//                        var src="http://"+server+".tile.openstreetmap.org/"+intZoom+"/"+xx+"/"+yy+".png";
+                        var src="/iphonemapproxy/imgproxy.php?url=http://"+server+".tile.openstreetmap.org/"+intZoom+"/"+xx+"/"+yy+".png";
 			//see imageproxy.php for offline map usage
 
 			//bing tiles
