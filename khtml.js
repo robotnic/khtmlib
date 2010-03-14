@@ -837,7 +837,6 @@ this.mousewheel=function(evt){
 		var zoom=this.zoom + dzoom;
 		if(zoomGap){
 			zoom=Math.round(zoom);
-			dzoom=z;
 		}
 
 		faktor=Math.pow(2,zoom);
@@ -1079,10 +1078,19 @@ this.mousewheel=function(evt){
 	this.getSize=function(){
 		this.width=this.map.parentNode.offsetWidth;
 		this.height=this.map.parentNode.offsetHeight;
+		var obj=this.map
+		var left=0;
+		var top=0;
+		do {
+			left += obj.offsetLeft;
+			top  += obj.offsetTop ;
+			obj = obj.offsetParent;
+		} while (obj.offsetParent);
+
 		this.map.style.left=this.width/2+"px";  //not very good programming style
 		this.map.style.top=this.height/2+"px";  //not very good programming style
-		this.mapTop=this.map.parentNode.offsetTop;
-		this.mapLeft=this.map.parentNode.offsetLeft;
+		this.mapTop=top;
+		this.mapLeft=left;
 	}
 
 
@@ -1667,7 +1675,9 @@ this.mousewheel=function(evt){
 	this.maxIntZoom=18;
         this.mapParent=map;
 	mapInit=map;
+	
 	map=mapInit.cloneNode(true);
+
 	this.clone=map;
 	map.removeAttribute("id");
         var obj=mapInit;
