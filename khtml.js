@@ -1,7 +1,7 @@
 
 //
 //  khtml javascript library
-//  verion 0.33
+//  verion 0.34
 //  LGPL Bernhard Zwischenbrugger
 //  http://www.khtml.org/iphonemap/help.php
 //
@@ -38,6 +38,7 @@ function kStyle(){
 
 //
 // Marker Object - work in progress
+// There should be a possibility to add orbitrary html as marker
 //
 
 function kMarker(point,color){
@@ -310,7 +311,6 @@ function kPoint(lat,lng){
 
 //
 // An area defined by 2 Points
-// instead of nw, se there should be sw,ne 
 //
 
 function kBounds(sw,ne){
@@ -406,6 +406,11 @@ function kmap(map){
 		}
 
 	}
+
+	//
+	// every change (lat,lng,zoom) will call a user defined function
+	//
+
 	this.callbackFunctions=new Array();
 	this.addCallbackFunction=function(func){
 		if(typeof(func)=="function"){
@@ -418,6 +423,10 @@ function kmap(map){
 		}
 	}
 
+
+	//
+	//  A simple distance measuring
+	//
 	this.startDistance=function(){
 		this.distanceMeasuring="yes";
 	}	
@@ -425,402 +434,395 @@ function kmap(map){
 		this.distanceMeasuring="no";
 	}	
 
-//
-//EVENTS
-//
+	/*==================================================
+	//
+	//    Touchscreen and Mouse EVENTS
+	//
+	===================================================*/
 
 
-//
-//  Touchscreen
-//  Here also the multitouch zoom is done
-//
+	//
+	//  Touchscreen
+	//  Here also the multitouch zoom is done
+	//
 
-this.start=function(evt){
-        if(evt.preventDefault){
-		evt.preventDefault(); // The W3C DOM way
-	} else {
-		evt.returnValue = false; // The IE way
+	this.start=function(evt){
+		if(evt.preventDefault){
+			evt.preventDefault(); // The W3C DOM way
+		} else {
+			evt.returnValue = false; // The IE way
+		}
+		this.hideOverlays();
+		if(evt.touches.length ==1){
+			this.startMoveX=this.moveX - evt.touches[0].pageX /this.faktor /this.sc;
+			this.startMoveY=this.moveY - evt.touches[0].pageY  /this.faktor/this.sc;
+			if(this.mousedownTime!=null){	
+				var now=(new Date()).getTime();
+				if(now - this.mousedownTime < this.doubleclickTime){
+					var zoomD=Math.ceil(0.01+this.getZoom());
+					this.autoZoomIn(evt.touches[0].pageX,evt.touches[0].pageY,zoomD);	
+				}
+			}
+			this.mousedownTime=(new Date()).getTime();
+			var that=this;
+			var tempFunction=function () {that.autoZoomOut()};
+			this.zoomOutInterval=window.setInterval(tempFunction,20);
+		}
+			
+		if(evt.touches.length ==2){
+			window.clearInterval(this.zoomOutInterval);
+			this.moveok=false;
+			var X1=evt.touches[0].pageX;
+			var Y1=evt.touches[0].pageY;
+			var X2=evt.touches[1].pageX;
+			var Y2=evt.touches[1].pageY;
+			this.startDistance=Math.sqrt(Math.pow((X2 - X1),2) + Math.pow((Y2 - Y1),2)) ;
+			this.startZZ=this.zoom;
+			var x=(X1+X2)/2 /this.faktor /this.sc;
+			var y=(Y1+Y2)/2 /this.faktor /this.sc;
+			this.startMoveX=this.moveX - x;
+			this.startMoveY=this.moveY - y;
+		}
 	}
-	this.hideOverlays();
-        if(evt.touches.length ==1){
-                this.startMoveX=this.moveX - evt.touches[0].pageX /this.faktor /this.sc;
-                this.startMoveY=this.moveY - evt.touches[0].pageY  /this.faktor/this.sc;
-		if(this.mousedownTime!=null){	
-			var now=(new Date()).getTime();
-			if(now - this.mousedownTime < this.doubleclickTime){
-				var zoomD=Math.ceil(0.01+this.getZoom());
-				this.autoZoomIn(evt.touches[0].pageX,evt.touches[0].pageY,zoomD);	
+
+	this.move=function(evt){
+		if(evt.preventDefault){
+			evt.preventDefault(); // The W3C DOM way
+		} else {
+			evt.returnValue = false; // The IE way
+		}
+
+	//	this.mousedownTime=null;
+		if(evt.touches.length ==1){
+			if(this.moveok){
+				this.moveX=evt.touches[0].pageX / this.faktor/this.sc + this.startMoveX;
+				this.moveY=evt.touches[0].pageY / this.faktor/this.sc + this.startMoveY;
+				if(!this.zoomOutStarted){
+					if((Math.abs(this.moveX -this.startMoveX) > 0.01) ||(Math.abs(this.moveY - this.startMoveY) >0.01)){
+						window.clearInterval(this.zoomOutInterval);
+						this.zoomOutSpeed=0.01;
+						this.mousedownTime=null;
+					}
+					var center=new kPoint(this.lat,this.lng);
+					this.setCenter(center,this.zoom);
+				}
+			}else{
+				//alert("no move");
 			}
 		}
-		this.mousedownTime=(new Date()).getTime();
-		var that=this;
-		var tempFunction=function () {that.autoZoomOut()};
-                this.zoomOutInterval=window.setInterval(tempFunction,20);
-        }
-		
-        if(evt.touches.length ==2){
-		window.clearInterval(this.zoomOutInterval);
-                this.moveok=false;
-                var X1=evt.touches[0].pageX;
-                var Y1=evt.touches[0].pageY;
-                var X2=evt.touches[1].pageX;
-                var Y2=evt.touches[1].pageY;
-                this.startDistance=Math.sqrt(Math.pow((X2 - X1),2) + Math.pow((Y2 - Y1),2)) ;
-                this.startZZ=this.zoom;
-		var x=(X1+X2)/2 /this.faktor /this.sc;
-		var y=(Y1+Y2)/2 /this.faktor /this.sc;
-                this.startMoveX=this.moveX - x;
-                this.startMoveY=this.moveY - y;
-        }
-}
 
-this.move=function(evt){
-        if(evt.preventDefault){
-		evt.preventDefault(); // The W3C DOM way
-	} else {
-		evt.returnValue = false; // The IE way
+			//document.getElementById("debug").textContent=this.moveY;
+		if(evt.touches.length == 2){
+			this.mousedownTime=null;
+			var X1=evt.touches[0].pageX;
+			var Y1=evt.touches[0].pageY;
+			var X2=evt.touches[1].pageX;
+			var Y2=evt.touches[1].pageY;
+			var Distance=Math.sqrt(Math.pow((X2 - X1),2) + Math.pow((Y2 - Y1),2)) ;
+			var zoomDelta=(Distance / this.startDistance );
+			//document.getElementById("debug").textContent=zoomDelta;
+			var zz=this.startZZ+zoomDelta -1;
+			if(zz < 1){
+				zz=1;
+			}
+			if(zz > 18){
+				zz=18;
+				zoomDelta=1;
+			}
+			var x=(X1+X2)/2;
+			var y=(Y1+Y2)/2;
+
+			faktor=Math.pow(2,zz);   
+			var zoomCenterDeltaX=x /faktor  -this.width/2;
+			var zoomCenterDeltaY=y /faktor  -this.height/2;
+			var f=Math.pow(2,zoomDelta -1);
+			var dx=zoomCenterDeltaX - zoomCenterDeltaX*f;
+			var dy=zoomCenterDeltaY - zoomCenterDeltaY*f;
+
+			this.moveX=(x+dx) /faktor +this.startMoveX ;
+			this.moveY=(y+dy) /faktor +this.startMoveY ;
+
+			//document.getElementById("debug").textContent=x+":"+y+": "+dx+":"+dy+": "+this.startMoveX+":"+f+zoomDelta;
+
+			var center=new kPoint(this.lat,this.lng);
+			this.setCenter(center,zz);
+		}
 	}
 
-//	this.mousedownTime=null;
-        if(evt.touches.length ==1){
-                if(this.moveok){
-                        this.moveX=evt.touches[0].pageX / this.faktor/this.sc + this.startMoveX;
-                        this.moveY=evt.touches[0].pageY / this.faktor/this.sc + this.startMoveY;
-			if(!this.zoomOutStarted){
-				if((Math.abs(this.moveX -this.startMoveX) > 0.01) ||(Math.abs(this.moveY - this.startMoveY) >0.01)){
-					window.clearInterval(this.zoomOutInterval);
-					this.zoomOutSpeed=0.01;
-					this.mousedownTime=null;
-				}
-				//document.getElementById("debug").textContent=this.moveX+": "+this.moveY+": "+evt.touches[0].pageX+": "+this.faktor+":"+this.sc;
+	this.end=function(evt){
+		if(evt.preventDefault){
+			evt.preventDefault(); // The W3C DOM way
+		} else {
+			evt.returnValue = false; // The IE way
+		}
+		window.clearInterval(this.zoomOutInterval);
+		this.zoomOutStarted=false;
+		if(evt.touches.length==0){
+			this.moveok=true;
+		}
+	/*
+		this.moveX=0;
+		this.moveY=0;
+		this.lat=this.movedLat;
+		this.lng=this.movedLng;
+	*/
+		this.renderOverlays();
+	}
+
+
+	//
+	//  mouse events
+	//
+
+	this.mousedown=function(evt){
+		if(evt.preventDefault){
+			evt.preventDefault(); // The W3C DOM way
+		} else {
+			window.event.returnValue = false; // The IE way
+		}
+
+		if(this.mousedownTime2!=null){
+			var now=(new Date()).getTime();
+			if(now - this.mousedownTime2 < this.doubleclickTime2){
+				var zoom=this.getZoom();
+				var zoomD=Math.ceil(0.01+this.getZoom())-zoom;
+				this.autoZoomIn(evt.pageX -this.mapLeft,evt.pageY -this.mapTop,zoomD);
+			}
+		}
+		this.mousedownTime2=(new Date()).getTime();
+
+		if(this.distanceMeasuring=="yes"){
+			this.distanceStartpoint=this.XYTolatlng(-this.mapLeft + evt.pageX,this.mapTop+this.height - evt.pageY);
+			var marker=new kMarker(this.distanceStartpoint,"green");
+			this.addOverlay(marker);
+			this.moveMarker=new kMarker(this.distanceStartpoint,"green");
+		
+			var points=new Array();
+			var style=new kStyle();
+			style.addStyle("stroke-width",1);
+			style.addStyle("stroke","green");
+			this.measureLine=new kPolyline(points,style);
+			this.addOverlay(this.measureLine);
+
+			return;
+		}
+
+
+		if(evt.shiftKey){
+			this.selectRectLeft=evt.pageX - this.mapLeft;
+			this.selectRectTop=evt.pageY - this.mapTop;
+
+
+
+	//		this.distanceStartpoint=this.XYTolatlng(-this.mapLeft + evt.pageX,this.mapTop+this.height - evt.pageY);
+
+			this.selectRect=document.createElement("div");
+			this.selectRect.style.left=this.selectRectLeft+"px";
+			this.selectRect.style.top=this.selectRectTop+"px";
+			this.selectRect.style.border="1px solid grey";
+			this.selectRect.style.opacity=0.5;
+			this.selectRect.style.position="absolute";
+			this.selectRect.style.backgroundColor="white";
+			this.map.parentNode.appendChild(this.selectRect);	
+		}else{
+			this.hideOverlays();
+			this.startMoveX=this.moveX - (evt.pageX - this.mapLeft) /this.faktor /this.sc;
+			this.startMoveY=this.moveY - (evt.pageY - this.mapTop)  /this.faktor/this.sc;
+			this.movestarted=true;
+		}
+		return false;
+	}
+
+	this.mousemove=function(evt){
+		if(evt.preventDefault){
+			evt.preventDefault(); // The W3C DOM way
+		} else {
+			window.event.returnValue = false; // The IE way
+		}
+		//this.mousedownTime2=0; //if it's moved it's not a doubleclick
+		if(this.distanceMeasuring){
+			if(this.moveMarker){
+				this.normalize();
+				var movePoint=this.XYTolatlng(-this.mapLeft + evt.pageX,this.mapTop+this.height - evt.pageY);
+				this.moveMarker.moveTo(movePoint);
+				this.addOverlay(this.moveMarker);
+				//add line
+				var points=new Array();
+				points.push(this.distanceStartpoint);
+				points.push(movePoint);
+				this.measureLine.setPoints(points);
+				var mbr=new kBounds(movePoint,this.distanceStartpoint);
+				var d=Math.round(mbr.getDistance());
+				var dkm=d / 1000;
+				/*		
+				if(dkm > 10){
+					dkm=Math.round(dkm*10)/10;
+				}	
+				if(dkm > 100){
+					dkm=Math.round(dkm*100)/100;
+				}	
+				if(dkm > 1000){
+					dkm=Math.round(dkm*1000)/1000;
+				}	
+				if(dkm > 10000){
+					dkm=Math.round(dkm*10000)/10000;
+				}	
+				*/	
+				var style2=new kStyle();
+				style2.addStyle("fill","black");
+				style2.addStyle("stroke","white");
+				style2.addStyle("stroke-width",0.5);
+				style2.addStyle("font-size","18px");
+				style2.addStyle("font-weight","bold");
+				style2.addStyle("text-anchor","middle");
+				style2.addStyle("dy","-2");
+				this.measureLine.setText(dkm+" km",style2);
+				var that=this;
+				this.measureLine.render(that);
+				return;
+			}
+		}
+		if(evt.shiftKey){
+			if(this.selectRect){
+				this.selectRect.style.width=evt.pageX - this.mapLeft - this.selectRectLeft+"px";
+				this.selectRect.style.height=evt.pageY - this.mapTop - this.selectRectTop +"px";
+			}
+		}else{
+			if(this.movestarted){
+				this.moveX=(evt.pageX - this.mapLeft) / this.faktor/this.sc + this.startMoveX;
+				this.moveY=(evt.pageY - this.mapTop) / this.faktor/this.sc + this.startMoveY;
 				var center=new kPoint(this.lat,this.lng);
+				//alert(evt.pageX);
 				this.setCenter(center,this.zoom);
 			}
-                }else{
-                        //alert("no move");
-                }
-        }
+		}
+		return false;
+	}
+	this.mouseup=function(evt){
+		if(evt.preventDefault){
+			evt.preventDefault(); // The W3C DOM way
+		} else {
+			evt.returnValue = false; // The IE way
+		}
+		if(this.moveMarker){
+			this.moveMarker=null;
+		}
+		if(this.selectRect){
+			var p1=this.XYTolatlng(this.selectRect.offsetLeft ,this.height - this.selectRect.offsetTop -this.selectRect.offsetHeight );
+			var p2=this.XYTolatlng(this.selectRect.offsetLeft +this.selectRect.offsetWidth,this.height - this.selectRect.offsetTop  );
+			/*
+			var pp1=new kMarker(p1,"green");
+			this.addOverlay(pp1);
 
-		//document.getElementById("debug").textContent=this.moveY;
-        if(evt.touches.length == 2){
-		this.mousedownTime=null;
-                var X1=evt.touches[0].pageX;
-                var Y1=evt.touches[0].pageY;
-                var X2=evt.touches[1].pageX;
-                var Y2=evt.touches[1].pageY;
-                var Distance=Math.sqrt(Math.pow((X2 - X1),2) + Math.pow((Y2 - Y1),2)) ;
-                var zoomDelta=(Distance / this.startDistance );
-                //document.getElementById("debug").textContent=zoomDelta;
-                var zz=this.startZZ+zoomDelta -1;
-                if(zz < 1){
-                        zz=1;
-                }
-                if(zz > 18){
-                        zz=18;
-			zoomDelta=1;
-                }
-		var x=(X1+X2)/2;
-		var y=(Y1+Y2)/2;
+			var pp2=new kMarker(p2,"green");
+			this.addOverlay(pp2);
+			*/
 
-		faktor=Math.pow(2,zz);   
-		var zoomCenterDeltaX=x /faktor  -this.width/2;
-		var zoomCenterDeltaY=y /faktor  -this.height/2;
-		var f=Math.pow(2,zoomDelta -1);
+
+			var bounds=new kBounds(p1,p2);
+			//alert(p1.getLat()+":"+p1.getLng()+":"+p2.getLat()+":"+p2.getLng());
+			this.setBounds(bounds);
+			this.selectRect.parentNode.removeChild(this.selectRect);			
+			this.selectRect=null;
+		}
+
+		//using this normalize some things are working better, others not so goot. 
+		//delelte it will solve some problems but bring other problems
+		//this.normalize();
+
+		this.movestarted=false;
+		this.renderOverlays();
+	}
+
+	//
+	// this function should draw the map and remove any moveX,moveY
+	// Maybe buggy
+	//
+	this.normalize=function(){
+		//normalize after move speed trick
+		var lat=this.movedLat;
+		var lng=this.movedLng;
+		var center=new kPoint(lat,lng);
+		var zoom=this.getZoom();
+		this.moveX=0;
+		this.moveY=0;
+		this.setCenterNoLog(center,zoom);
+		//end normalize (maybe this.stop needs the same)
+	}
+
+	//
+	//  mouse wheel zoom
+	//  the mousewheel speed depends on browser and os
+	//  to optimize this could improve the map a lot.
+	//  todo: wheelspeed
+	//
+
+	this.mousewheel=function(evt){
+		if(evt.preventDefault){
+			evt.preventDefault(); // The W3C DOM way
+		} else {
+			evt.returnValue = false; // The IE way
+		}
+
+		
+		if (!evt) /* For IE. */
+			evt = window.event;
+		if (evt.wheelDelta) { /* IE/Opera. */
+			delta = evt.wheelDelta/60;
+			if (window.opera){
+				delta = delta/4;
+			}
+		} else if (evt.detail) { /** Mozilla case. */
+			delta = -evt.detail/3;
+		}
+
+		if (navigator.userAgent.match("Safari") ){
+			delta = evt.wheelDelta/150;
+		}
+		var now=(new Date()).getTime();
+		var timeDelta=now - this.zoomSpeedTimer;
+		this.zoomSpeedTimer=now;
+		if(timeDelta < 100){
+			this.zoomSpeedAcceleration*=1.2;
+		}else{
+			this.zoomSpeedAcceleration=1;
+		}
+		var oldzoom=this.zoom;
+		var dzoom=delta *this.zoomSpeed * this.zoomSpeedAcceleration;
+		fak=30;
+
+		var dzoom=delta/timeDelta* fak;
+
+		if(!isNaN(dzoom)){
+			var zoom=this.zoom+dzoom;
+		}
+
+		if(zoom < 1){
+			zoom=1;
+			dzoom=0;
+		}
+
+
+		faktor=Math.pow(2,zoom);   
+		var zoomCenterDeltaX=(evt.pageX -this.mapLeft)   -this.width/2;
+		var zoomCenterDeltaY=(evt.pageY -this.mapTop)  -this.height/2;
+		var f=Math.pow(2,dzoom );
+
 		var dx=zoomCenterDeltaX - zoomCenterDeltaX*f;
 		var dy=zoomCenterDeltaY - zoomCenterDeltaY*f;
 
-		this.moveX=(x+dx) /faktor +this.startMoveX ;
-		this.moveY=(y+dy) /faktor +this.startMoveY ;
+		this.moveX=this.moveX+dx /faktor;
+		this.moveY=this.moveY+dy /faktor;
 
-                //document.getElementById("debug").textContent=x+":"+y+": "+dx+":"+dy+": "+this.startMoveX+":"+f+zoomDelta;
+		this.setCenter(this.center,zoom);	
+		this.renderOverlays();
 
-		var center=new kPoint(this.lat,this.lng);
-                this.setCenter(center,zz);
-        }
-}
-
-this.end=function(evt){
-        if(evt.preventDefault){
-		evt.preventDefault(); // The W3C DOM way
-	} else {
-		evt.returnValue = false; // The IE way
-	}
-	window.clearInterval(this.zoomOutInterval);
-	this.zoomOutStarted=false;
-        if(evt.touches.length==0){
-                this.moveok=true;
-        }
-/*
-	this.moveX=0;
-	this.moveY=0;
-	this.lat=this.movedLat;
-	this.lng=this.movedLng;
-*/
-	this.renderOverlays();
-}
-
-
-//
-//  mouse events
-//
-
-this.mousedown=function(evt){
-        if(evt.preventDefault){
-		evt.preventDefault(); // The W3C DOM way
-	} else {
-		window.event.returnValue = false; // The IE way
-	}
-
-	if(this.mousedownTime2!=null){
-		var now=(new Date()).getTime();
-		if(now - this.mousedownTime2 < this.doubleclickTime2){
-			var zoom=this.getZoom();
-			var zoomD=Math.ceil(0.01+this.getZoom())-zoom;
-			this.autoZoomIn(evt.pageX -this.mapLeft,evt.pageY -this.mapTop,zoomD);
-		}
-	}
-	this.mousedownTime2=(new Date()).getTime();
-
-	if(this.distanceMeasuring=="yes"){
-		this.distanceStartpoint=this.XYTolatlng(-this.mapLeft + evt.pageX,this.mapTop+this.height - evt.pageY);
-		var marker=new kMarker(this.distanceStartpoint,"green");
-		this.addOverlay(marker);
-		this.moveMarker=new kMarker(this.distanceStartpoint,"green");
-	
-		var points=new Array();
-		var style=new kStyle();
-		style.addStyle("stroke-width",1);
-		style.addStyle("stroke","green");
-		this.measureLine=new kPolyline(points,style);
-		this.addOverlay(this.measureLine);
-
-		return;
 	}
 
 
-	if(evt.shiftKey){
-		this.selectRectLeft=evt.pageX - this.mapLeft;
-                this.selectRectTop=evt.pageY - this.mapTop;
-
-
-
-//		this.distanceStartpoint=this.XYTolatlng(-this.mapLeft + evt.pageX,this.mapTop+this.height - evt.pageY);
-
-		this.selectRect=document.createElement("div");
-		this.selectRect.style.left=this.selectRectLeft+"px";
-		this.selectRect.style.top=this.selectRectTop+"px";
-		this.selectRect.style.border="1px solid grey";
-		this.selectRect.style.opacity=0.5;
-		this.selectRect.style.position="absolute";
-		this.selectRect.style.backgroundColor="white";
-		this.map.parentNode.appendChild(this.selectRect);	
-	}else{
-		this.hideOverlays();
-		this.startMoveX=this.moveX - (evt.pageX - this.mapLeft) /this.faktor /this.sc;
-		this.startMoveY=this.moveY - (evt.pageY - this.mapTop)  /this.faktor/this.sc;
-		this.movestarted=true;
-	}
-	return false;
-}
-
-this.mousemove=function(evt){
-        if(evt.preventDefault){
-		evt.preventDefault(); // The W3C DOM way
-	} else {
-		window.event.returnValue = false; // The IE way
-	}
-	//this.mousedownTime2=0; //if it's moved it's not a doubleclick
-	if(this.distanceMeasuring){
-		if(this.moveMarker){
-			this.normalize();
-			var movePoint=this.XYTolatlng(-this.mapLeft + evt.pageX,this.mapTop+this.height - evt.pageY);
-			this.moveMarker.moveTo(movePoint);
-			this.addOverlay(this.moveMarker);
-			//add line
-			var points=new Array();
-			points.push(this.distanceStartpoint);
-			points.push(movePoint);
-			this.measureLine.setPoints(points);
-			var mbr=new kBounds(movePoint,this.distanceStartpoint);
-			var d=Math.round(mbr.getDistance());
-			var dkm=d / 1000;
-			/*		
-			if(dkm > 10){
-				dkm=Math.round(dkm*10)/10;
-			}	
-			if(dkm > 100){
-				dkm=Math.round(dkm*100)/100;
-			}	
-			if(dkm > 1000){
-				dkm=Math.round(dkm*1000)/1000;
-			}	
-			if(dkm > 10000){
-				dkm=Math.round(dkm*10000)/10000;
-			}	
-			*/	
-			var style2=new kStyle();
-			style2.addStyle("fill","black");
-			style2.addStyle("stroke","white");
-			style2.addStyle("stroke-width",0.5);
-			style2.addStyle("font-size","18px");
-			style2.addStyle("font-weight","bold");
-			style2.addStyle("text-anchor","middle");
-			style2.addStyle("dy","-2");
-			this.measureLine.setText(dkm+" km",style2);
-			var that=this;
-			this.measureLine.render(that);
-			return;
-		}
-	}
-	if(evt.shiftKey){
-		if(this.selectRect){
-			this.selectRect.style.width=evt.pageX - this.mapLeft - this.selectRectLeft+"px";
-			this.selectRect.style.height=evt.pageY - this.mapTop - this.selectRectTop +"px";
-		}
-	}else{
-		if(this.movestarted){
-			this.moveX=(evt.pageX - this.mapLeft) / this.faktor/this.sc + this.startMoveX;
-			this.moveY=(evt.pageY - this.mapTop) / this.faktor/this.sc + this.startMoveY;
-			var center=new kPoint(this.lat,this.lng);
-			//alert(evt.pageX);
-			this.setCenter(center,this.zoom);
-		}
-	}
-	return false;
-}
-this.mouseup=function(evt){
-        if(evt.preventDefault){
-		evt.preventDefault(); // The W3C DOM way
-	} else {
-		evt.returnValue = false; // The IE way
-	}
-	if(this.moveMarker){
-		this.moveMarker=null;
-	}
-	if(this.selectRect){
-		var p1=this.XYTolatlng(this.selectRect.offsetLeft ,this.height - this.selectRect.offsetTop -this.selectRect.offsetHeight );
-		var p2=this.XYTolatlng(this.selectRect.offsetLeft +this.selectRect.offsetWidth,this.height - this.selectRect.offsetTop  );
-		/*
-		var pp1=new kMarker(p1,"green");
-		this.addOverlay(pp1);
-
-		var pp2=new kMarker(p2,"green");
-		this.addOverlay(pp2);
-		*/
-
-
-                var bounds=new kBounds(p1,p2);
-		//alert(p1.getLat()+":"+p1.getLng()+":"+p2.getLat()+":"+p2.getLng());
-		this.setBounds(bounds);
-		this.selectRect.parentNode.removeChild(this.selectRect);			
-		this.selectRect=null;
-	}
-/*
-	//normalize after move speed trick
-	var lat=this.movedLat;
-	var lng=this.movedLng;
-	var center=new kPoint(lat,lng);
-	var zoom=this.getZoom();
-	this.moveX=0;
-	this.moveY=0;
-	this.setCenter(center,zoom);
-	//end normalize (maybe this.stop needs the same)
-*/
-
-	//using this normalize some things are working better, others not so goot. 
-	//delelte it will solve some problems but bring other problems
-	//this.normalize();
-
-	this.movestarted=false;
-	this.renderOverlays();
-}
-
-this.normalize=function(){
-        //normalize after move speed trick
-        var lat=this.movedLat;
-        var lng=this.movedLng;
-        var center=new kPoint(lat,lng);
-        var zoom=this.getZoom();
-        this.moveX=0;
-        this.moveY=0;
-        this.setCenterNoLog(center,zoom);
-        //end normalize (maybe this.stop needs the same)
-}
-
-//
-//  mouse wheel zoom
-//  the mousewheel speed depends on browser and os
-//  to optimize this could improve the map a lot.
-//  todo: wheelspeed
-//
-
-this.mousewheel=function(evt){
-        if(evt.preventDefault){
-		evt.preventDefault(); // The W3C DOM way
-	} else {
-		evt.returnValue = false; // The IE way
-	}
-
-	
-        if (!evt) /* For IE. */
-                evt = window.event;
-        if (evt.wheelDelta) { /* IE/Opera. */
-                delta = evt.wheelDelta/60;
-                if (window.opera){
-                        delta = delta/4;
-		}
-	} else if (evt.detail) { /** Mozilla case. */
-		delta = -evt.detail/3;
-	}
-
-        if (navigator.userAgent.match("Safari") ){
-		delta = evt.wheelDelta/150;
-	}
-	var now=(new Date()).getTime();
-	var timeDelta=now - this.zoomSpeedTimer;
-	this.zoomSpeedTimer=now;
-	if(timeDelta < 100){
-		this.zoomSpeedAcceleration*=1.2;
-	}else{
-		this.zoomSpeedAcceleration=1;
-	}
-	var oldzoom=this.zoom;
-	var dzoom=delta *this.zoomSpeed * this.zoomSpeedAcceleration;
-        fak=30;
-
-        var dzoom=delta/timeDelta* fak;
-
-        if(!isNaN(dzoom)){
-		var zoom=this.zoom+dzoom;
-        }
-
-	if(zoom < 1){
-		zoom=1;
-		dzoom=0;
-	}
-
-
-	faktor=Math.pow(2,zoom);   
-	var zoomCenterDeltaX=(evt.pageX -this.mapLeft)   -this.width/2;
-	var zoomCenterDeltaY=(evt.pageY -this.mapTop)  -this.height/2;
-	var f=Math.pow(2,dzoom );
-
-	var dx=zoomCenterDeltaX - zoomCenterDeltaX*f;
-	var dy=zoomCenterDeltaY - zoomCenterDeltaY*f;
-
-	this.moveX=this.moveX+dx /faktor;
-	this.moveY=this.moveY+dy /faktor;
-
-	this.setCenter(this.center,zoom);	
-	this.renderOverlays();
-
-}
-
-
-//
-//  zoom in animation
-//  todo: for double click it should jump to an integer zoom level to get clear pictures (not fuzzy).
-//
+	//
+	//  zoom in animation
+	//
 
 	this.autoZoomIn=function(x,y,z){
 		if(z < 0){
@@ -862,9 +864,9 @@ this.mousewheel=function(evt){
 		
 	}
 
-//
-//  zoom out animation
-//
+	//
+	//  zoom out animation
+	//
 
 	this.autoZoomOut=function(){
 		if(this.mousedownTime!=null){	
@@ -880,15 +882,18 @@ this.mousewheel=function(evt){
 	}	
 
 
-//
-//  Set the map coordinates
-//
-	
+	//
+	//  Set the map coordinates and zoom
+	//
 	this.setCenter=function(center,zoom){
 		this.record();
 		this.executeCallbackFunctions();
 		this.setCenterNoLog(center,zoom);
 	}
+
+	//
+	// same as setCenter but no history item is generated (for undo, redo)
+	//
 	this.setCenterNoLog=function(center,zoom){
 		var zoom=parseFloat(zoom);
 		this.center=center;		
@@ -898,8 +903,11 @@ this.mousewheel=function(evt){
 
 		this.layer(this.map,this.lat,this.lng,this.moveX,this.moveY,zoom);
 	}
-	
-	this.realSetCenter=function(center,zoom){
+
+	//
+	//  For good speed many frames are dropped. If the frames must not be dropped, this medthod can be used
+	//	
+	this.forceSetCenter=function(center,zoom){
 		var zoom=parseFloat(zoom);
 		this.center=center;		
 		this.zoom=zoom;	
@@ -913,18 +921,18 @@ this.mousewheel=function(evt){
 
 
 
-//
-//  read the map center (no zoom value)
-//
+	//
+	//  read the map center (no zoom value)
+	//
 
 	this.getCenter=function(){
 		var center=new kPoint(this.movedLat,this.movedLng);
 		return center;
 	}
 
-//
-//  read bounds. The Coordinates at corners of the map div  sw, ne would be better (change it!)
-//
+	//
+	//  read bounds. The Coordinates at corners of the map div  sw, ne would be better (change it!)
+	//
 
 
 	this.getBounds=function(){
@@ -935,9 +943,9 @@ this.mousewheel=function(evt){
 		return bounds;
 	}
 
-//
-//  like setCenter but with two gps points
-//
+	//
+	//  like setCenter but with two gps points
+	//
 
 	this.setBounds=function(b){
 		this.getSize();
@@ -968,9 +976,11 @@ this.mousewheel=function(evt){
 	}
 
 
-//
-// WGS84 to x,y at the layer calculation
-//
+	//
+	// WGS84 to x,y at the layer calculation
+	// This method is uses when 3D CSS is used.
+	// For Vector graphics also the 3D CSS is used.
+	//
 
 
         this.latlngToXYlayer=function(point){
@@ -1011,9 +1021,9 @@ this.mousewheel=function(evt){
 
         }
 
-//
-// WGS84 to x,y at the div calculation
-//
+	//
+	// WGS84 to x,y at the div calculation
+	//
 
 	this.latlngToXY=function(point){
 		var lat=point.getLat();
@@ -1032,9 +1042,9 @@ this.mousewheel=function(evt){
 	}
 
 
-//
-//  screen (map div) coordinates to lat,lng 
-//
+	//
+	//  screen (map div) coordinates to lat,lng 
+	//
 
 	this.XYTolatlng=function(x,y){
 		var center=this.getCenter();
@@ -1047,8 +1057,8 @@ this.mousewheel=function(evt){
 		var dx=x - this.width/2;
 		var dy=-y + this.height/2;  //das style
 	
-                var lng=(xypoint[0] + dx/this.tileW/this.sc )/faktor  *360 -180;// +lngDelta;
-                var lat360=(xypoint[1] + dy/this.tileH/this.sc )/faktor  *360 -180;// +latDelta;
+                var lng=(xypoint[0] + dx/this.tileW/this.sc )/faktor  *360 -180;
+                var lat360=(xypoint[1] + dy/this.tileH/this.sc )/faktor  *360 -180;
 
 //		alert("dx:"+dx/this.tileW+" center: "+xypoint[0]+":"+lng+":"+lat360);
 	
@@ -1058,21 +1068,21 @@ this.mousewheel=function(evt){
 	}
 
 
-//
-//  for iPhone to make page fullscreen (maybe not working)
-//
+	//
+	//  for iPhone to make page fullscreen (maybe not working)
+	//
 
 	this.reSize=function(){
 		var that=this;
-//		setTimeout("window.scrollTo(0,1)",500);
+		//setTimeout("window.scrollTo(0,1)",500);
 		var tempFunction=function () {that.getSize(that)};
 		window.setTimeout(tempFunction,1050);
 
 	}
 
-//
-// read the size of the DIV that will contain the map
-//
+	//
+	// read the size of the DIV that will contain the map
+	//
 
 
 	this.getSize=function(){
@@ -1101,33 +1111,24 @@ this.mousewheel=function(evt){
 		var lat=center.getLat();
 		var lng=center.getLng();
 		var zoom=this.getZoom();
-		var lat2=Math.round(lat*100) /100;
-		var lng2=Math.round(lng*100) /100;
-		var zoom2=Math.round(zoom*100) /100;
-		/*
-		document.getElementById("topright_lat").textContent=lat2;
-		document.getElementById("topright_lng").textContent=lng2;
-		document.getElementById("topright_zoom").textContent=zoom2;
-		*/
 		var item=new Array(lat,lng,zoom);
 		this.recordArray.push(item);
-		//console.log(this.recordArray.length);
 	}
 	this.play=function(i){
 		if(i <1) return;
 		if(i > (this.recordArray.length -1)) return;
 		var item=this.recordArray[i];
 		var center=new kPoint(item[0],item[1]);
+		//undo,redo must not generate history items
 		this.setCenterNoLog(center,item[2]);
 	}
 
 
 
-	/*
-	====== layer (which layer is visible) =====
-
-	Description: This method desides with layer is visible at the moment. It has the same parameters as the "draw" method, but no "intZoom"
-	*/
+	/*================== layer (which layer is visible) =====================
+	Description: This method desides with layer is visible at the moment. 
+	It has the same parameters as the "draw" method, but no "intZoom"
+	========================================================================= */
 
 	
 	this.layer=function(map,lat,lng, moveX, moveY, zoom){
@@ -1145,10 +1146,7 @@ this.mousewheel=function(evt){
 			this.visibleZoom=intZoom;
 			this.oldIntZoom=intZoom;
 		}
-		//this.faktor=Math.pow(2,this.visibleZoom);   //????????
 		this.faktor=Math.pow(2,intZoom);   //????????
-		
-                //var zoomDelta=zoom - this.visibleZoom;
                 var zoomDelta=zoom - intZoom;
                 this.sc=Math.pow(2,zoomDelta);
 
@@ -1175,6 +1173,7 @@ this.mousewheel=function(evt){
 		}
 		this.oldIntZoom=intZoom;	
 
+		//firefox cheats a little bit and needs a time penalt
 		if(!this.css3d){
 			var that=this;
 			var func=function(){that.blocked=false;};
@@ -1204,7 +1203,6 @@ this.mousewheel=function(evt){
 	this.draw=function(map,lat,lng, moveX, moveY, intZoom,zoom){
 		var faktor=Math.pow(2,intZoom);
 
-
 		//create new layer
 		if(!this.layers[intZoom]){
 			var tile=getTileNumber(lat,lng,intZoom);
@@ -1219,27 +1217,14 @@ this.mousewheel=function(evt){
 			layerDiv.style.position="absolute";
 
 			//svg layer for scalable things
-		
 			if(this.css3dvector){
-			//var svg=document.createElementNS("http://www.w3.org/2000/svg","svg");
-			var svg=document.createElement("div");
-			svg.style.top=-this.svgHeight/2;
-			svg.style.left=-this.svgWidth/2;
-			svg.style.zIndex=1;
-			/*	
-			svg.style.width=this.svgWidth;
-			svg.style.height=this.svgHeight;
-			*/
-			svg.style.position="absolute";
-			this.layers[intZoom]["svg"]=svg;
-			/*	
-			circle=document.createElementNS("http://www.w3.org/2000/svg","circle");
-			circle.setAttribute("r",10);
-			circle.setAttribute("cx",2050);
-			circle.setAttribute("cy",2050);
-			svg.appendChild(circle);
-			*/
-			layerDiv.appendChild(svg);
+				var svg=document.createElement("div");
+				svg.style.top=-this.svgHeight/2;
+				svg.style.left=-this.svgWidth/2;
+				svg.style.zIndex=1;
+				svg.style.position="absolute";
+				this.layers[intZoom]["svg"]=svg;
+				layerDiv.appendChild(svg);
 			}
 			
 
@@ -1274,7 +1259,6 @@ this.mousewheel=function(evt){
 			//console.log(latDelta+":"+lngDelta);
 		}
 		layerDiv.style.visibility="hidden";
-//		layerDiv.className="layer";
 
 		//if the map is moved with drag/drop, the moveX,moveY gives the movement in Pixel (not degree as lat/lng)
 		//here the real values of lat, lng are caculated
@@ -1323,7 +1307,6 @@ this.mousewheel=function(evt){
 			}
 		}
 
-		//document.getElementById("debug").textContent=dxDelta+" : "+dyDelta;
 
 		//set all images to hidden (only in Array) - the values are used later in this function
                 for(var vimg in this.layers[intZoom]["images"]){
@@ -1345,7 +1328,6 @@ this.mousewheel=function(evt){
 		minY=Math.floor((-height/2 /sc) /this.tileH +dyDelta);
 		maxY=Math.ceil((height/2 /sc) /this.tileH +dyDelta);
 		
-		//document.getElementById("debug").textContent=this.sc;
 
 		//now the images are placed on to the layer
                 for(var i= minX; i < maxX;i++){
@@ -1370,18 +1352,20 @@ this.mousewheel=function(evt){
 				
                         var src="http://"+server+".tile.openstreetmap.org/"+intZoom+"/"+xx+"/"+yy+".png";
 //                        var src="/iphonemapproxy/imgproxy.php?url=http://"+server+".tile.openstreetmap.org/"+intZoom+"/"+xx+"/"+yy+".png";
-				//see imageproxy.php for offline map usage
+			//see imageproxy.php for offline map usage
 
+			//bing tiles
 			//var n=mkbin(intZoom,xxx,yyy);
 			//var src="http://ecn.t0.tiles.virtualearth.net/tiles/a"+n+".jpeg?g=367&mkt=de-de";
 			//var src="http://maps3.yimg.com/ae/ximg?v=1.9&t=a&s=256&.intl=de&x="+xx+"&y="+(yy)+"&z="+intZoom+"&r=1";
+			//end bing tiles
+
+			//
                         var id="http://"+server+"c.tile.openstreetmap.org/"+intZoom+"/"+xxx+"/"+yyy+".png";
 		
 			//draw images only if they don't exist on the layer	
                         if(this.layers[intZoom]["images"][id] == null){
-	
-			
-				//if(intZoom==Math.floor(this.getZoom())){
+		
                                 var img=document.createElement("img");
                                 img.style.visibility="hidden";
                                 img.style.position="absolute";
@@ -1391,11 +1375,11 @@ this.mousewheel=function(evt){
                                 img.style.width=this.tileW+"px";
                                 img.style.height=this.tileH+"px";
 
-				//if the images are loaded, they wil get visible in the imgLoad function
+				//if the images are loaded, they will get visible in the imgLoad function
                                 Event.attach(img,"load",this.imgLoaded,this,false);
                                 Event.attach(img,"error",this.imgError,this,false);
 
-				//add img bevore SVG				
+				//add img before SVG, SVG will be visible 
 				if(layerDiv.childNodes.length >0){
                                         layerDiv.insertBefore(img,layerDiv.childNodes.item(0));
                                 }else{
@@ -1726,11 +1710,7 @@ this.mousewheel=function(evt){
 		map.appendChild(this.svg);
 		map.style.overflow="hidden";
 	}
-/*
-        map.ontouchstart=start;
-        window.ontouchmove=move;
-        window.ontouchend=end;
-*/
+
         this.layers=new Array();
         this.overlays=new Array();
         this.visibleZoom=null;
@@ -1807,7 +1787,7 @@ this.mousewheel=function(evt){
 // Rest of Code ist a Copy from
 //http://hiveminds.org.hiveminds.co.uk/phpBB/viewtopic6b81.html?t=2930
 //
-// Ab hier wird nur die Methode "attach" definiert. Am besten einfach ignorieren.
+// Event.attach is for events and OO Programing.
 //
 //
  
