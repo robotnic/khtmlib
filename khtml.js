@@ -841,6 +841,7 @@ function kmap(map){
 		var zoom=this.zoom + dzoom;
 		if(zoomGap){
 			zoom=Math.round(zoom);
+			dzoom=z;
 		}
 
 		faktor=Math.pow(2,zoom);
@@ -892,7 +893,6 @@ function kmap(map){
 	this.setCenter=function(center,zoom){
 		this.moveX=0;
 		this.moveY=0;
-		document.getElementById("debug").textContent=this.moveX+":"+this.moveY;
 		this.record();
 		this.executeCallbackFunctions();
 		this.setCenterNoLog(center,zoom);
@@ -1374,8 +1374,8 @@ function kmap(map){
 				default: var server="f";
 			}
 				
-//                        var src="http://"+server+".tile.openstreetmap.org/"+intZoom+"/"+xx+"/"+yy+".png";
-                        var src="/iphonemapproxy/imgproxy.php?url=http://"+server+".tile.openstreetmap.org/"+intZoom+"/"+xx+"/"+yy+".png";
+                        var src="http://"+server+".tile.openstreetmap.org/"+intZoom+"/"+xx+"/"+yy+".png";
+//                        var src="/iphonemapproxy/imgproxy.php?url=http://"+server+".tile.openstreetmap.org/"+intZoom+"/"+xx+"/"+yy+".png";
 			//see imageproxy.php for offline map usage
 
 			//bing tiles
