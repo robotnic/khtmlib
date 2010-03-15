@@ -1656,6 +1656,16 @@ function kmap(map){
 			obj = obj.offsetParent;
 		} while (obj.offsetParent);
 		//console.log(left,top);
+                this.width=obj.offsetWidth;
+                this.height=obj.offsetHeight;
+                if(this.map){
+                        this.map.style.left=this.width/2+"px";
+                        this.map.style.top=this.height/2+"px";
+                }
+
+                this.mapTop=top;
+                this.mapLeft=left;
+
 		this.clone.style.top=top+"px";
 		this.clone.style.left=left+"px";
 		this.clone.style.position="absolute";
@@ -1690,6 +1700,7 @@ function kmap(map){
 	map.removeAttribute("id");
         var obj=mapInit;
 	this.setMapPosition();
+
 
 	//should be bigger than screen
 	this.svgWidth=100000;
@@ -1784,7 +1795,7 @@ function kmap(map){
 	}else{
 		var w=window;
 		// how to do that in ie?
-		Event.attach(window,"resize",this.getSize,this,false);
+		Event.attach(window,"resize",this.setMapPosition,this,false);
 	}
 	Event.attach(map,"touchstart",this.start,this,false);
 	Event.attach(map,"touchmove",this.move,this,false);
