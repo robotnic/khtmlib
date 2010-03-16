@@ -420,6 +420,7 @@ function kmap(map){
 		}
 	}
 	this.executeCallbackFunctions=function(){
+		//alert(this.callbackFunctions.length);
 		for(var i=0;i< this.callbackFunctions.length;i++){
 			this.callbackFunctions[i].call();
 		}
@@ -827,17 +828,18 @@ function kmap(map){
 	//
 
 	this.autoZoomIn=function(x,y,z){
+		var stepwidth=0.025;
 		if(z < 0){
 			//alert(this.getZoom());
 			this.renderOverlays();
 			return;
 		}
 		zoomGap=false;
-		if(z < 0.1){
+		if(z < stepwidth){
 			zoomGap=true;
 		}
 		this.hideOverlays();
-		var dzoom=0.1;
+		var dzoom=stepwidth;
 		var zoom=this.zoom + dzoom;
 		if(zoomGap){
 			zoom=Math.round(zoom);
@@ -862,7 +864,7 @@ function kmap(map){
 		var that=this;
 		if(!zoomGap){
 		var tempFunction=function () {that.autoZoomIn(x,y,newz)};
-		window.setTimeout(tempFunction,40);
+		window.setTimeout(tempFunction,10);
 		}
 		
 	}
@@ -893,6 +895,7 @@ function kmap(map){
 	this.setCenter=function(center,zoom){
 		this.moveX=0;
 		this.moveY=0;
+		this.normalize();
 		this.record();
 		this.executeCallbackFunctions();
 		this.setCenterNoLog(center,zoom);
@@ -947,7 +950,11 @@ function kmap(map){
 	//
 
 	this.getCenter=function(){
-		var center=new kPoint(this.movedLat,this.movedLng);
+		if(this.moveX!=0 ||this.moveY!=0){
+			var center=new kPoint(this.movedLat,this.movedLng);
+		}else{
+			var center=this.center;
+		}
 		return center;
 	}
 
@@ -1129,11 +1136,13 @@ function kmap(map){
 	this.recordArray=new Array();		
 	this.record=function(){
 		var center=this.getCenter();
+		if(center){
 		var lat=center.getLat();
 		var lng=center.getLng();
 		var zoom=this.getZoom();
 		var item=new Array(lat,lng,zoom);
 		this.recordArray.push(item);
+		}
 	}
 	this.play=function(i){
 		if(i <1) return;
@@ -1374,8 +1383,8 @@ function kmap(map){
 				default: var server="f";
 			}
 				
-                        var src="http://"+server+".tile.openstreetmap.org/"+intZoom+"/"+xx+"/"+yy+".png";
-//                        var src="/iphonemapproxy/imgproxy.php?url=http://"+server+".tile.openstreetmap.org/"+intZoom+"/"+xx+"/"+yy+".png";
+//                        var src="http://"+server+".tile.openstreetmap.org/"+intZoom+"/"+xx+"/"+yy+".png";
+                        var src="/iphonemapproxy/imgproxy.php?url=http://"+server+".tile.openstreetmap.org/"+intZoom+"/"+xx+"/"+yy+".png";
 			//see imageproxy.php for offline map usage
 
 			//bing tiles
@@ -1403,6 +1412,7 @@ function kmap(map){
                                 Event.attach(img,"load",this.imgLoaded,this,false);
                                 Event.attach(img,"error",this.imgError,this,false);
 
+				
 				//add img before SVG, SVG will be visible 
 				if(layerDiv.childNodes.length >0){
                                         layerDiv.insertBefore(img,layerDiv.childNodes.item(0));
@@ -1645,9 +1655,11 @@ function kmap(map){
 	//map is positioned absolute and is an a clone of the original map div.
 	//on window resize it must be positioned again
 	this.setMapPosition=function(){
+		//this.getSize();
 		var obj=this.mapParent;
 		this.clone.style.width=obj.offsetWidth+"px";
 		this.clone.style.height=obj.offsetHeight+"px";
+
 		var left=0;
 		var top=0;
 		do {
@@ -1659,13 +1671,12 @@ function kmap(map){
                 this.width=obj.offsetWidth;
                 this.height=obj.offsetHeight;
                 if(this.map){
-                        this.map.style.left=this.width/2+"px";
-                        this.map.style.top=this.height/2+"px";
+			this.map.style.left=this.width/2+"px";
+			this.map.style.top=this.height/2+"px";
                 }
 
-                this.mapTop=top;
-                this.mapLeft=left;
-
+		this.mapTop=top;
+		this.mapLeft=left;
 		this.clone.style.top=top+"px";
 		this.clone.style.left=left+"px";
 		this.clone.style.position="absolute";
@@ -1700,7 +1711,6 @@ function kmap(map){
 	map.removeAttribute("id");
         var obj=mapInit;
 	this.setMapPosition();
-
 
 	//should be bigger than screen
 	this.svgWidth=100000;
