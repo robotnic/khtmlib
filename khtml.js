@@ -595,6 +595,7 @@ function kmap(map){
 		this.mousedownTime2=(new Date()).getTime();
 
 		if(this.distanceMeasuring=="yes"){
+			this.normalize();
 			this.distanceStartpoint=this.XYTolatlng(-this.mapLeft + evt.pageX,this.mapTop+this.height - evt.pageY);
 			var marker=new kMarker(this.distanceStartpoint,"green");
 			this.addOverlay(marker);
@@ -743,15 +744,17 @@ function kmap(map){
 	//
 	this.normalize=function(){
 		//normalize after move speed trick
-		if(this.movedLat){
+		if(!isNaN(this.movedLat)){
+		if(!isNaN(this.movedLng)){
 		var lat=this.movedLat;
 		var lng=this.movedLng;
 		var center=new kPoint(lat,lng);
 		var zoom=this.getZoom();
 		this.moveX=0;
 		this.moveY=0;
-		this.setCenterNoLog(center,zoom);
+		//this.setCenterNoLog(center,zoom);
 		//end normalize (maybe this.stop needs the same)
+		}
 		}
 	}
 
@@ -795,7 +798,7 @@ function kmap(map){
 			this.zoomSpeedAcceleration=1;
 		}
 		var oldzoom=this.zoom;
-		var dzoom=delta *this.zoomSpeed * this.zoomSpeedAcceleration;
+		//var dzoom=delta *this.zoomSpeed * this.zoomSpeedAcceleration;
 		fak=5;
 
 		var dzoom=delta/timeDelta* fak;
@@ -1298,6 +1301,7 @@ function kmap(map){
 	===================================================================================*/
 
 	this.draw=function(map,lat,lng, moveX, moveY, intZoom,zoom){
+		console.log("draw");
 		var faktor=Math.pow(2,intZoom);
 
 		//create new layer
@@ -1447,8 +1451,8 @@ function kmap(map){
 				default: var server="f";
 			}
 				
-                        var src="http://"+server+".tile.openstreetmap.org/"+intZoom+"/"+xx+"/"+yy+".png";
-//                        var src="/iphonemapproxy/imgproxy.php?url=http://"+server+".tile.openstreetmap.org/"+intZoom+"/"+xx+"/"+yy+".png";
+//                        var src="http://"+server+".tile.openstreetmap.org/"+intZoom+"/"+xx+"/"+yy+".png";
+                        var src="/iphonemapproxy/imgproxy.php?url=http://"+server+".tile.openstreetmap.org/"+intZoom+"/"+xx+"/"+yy+".png";
 			//see imageproxy.php for offline map usage
 
 			//bing tiles
