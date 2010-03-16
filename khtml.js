@@ -762,6 +762,8 @@ function kmap(map){
 	//  todo: wheelspeed
 	//
 
+
+	this.zoomAccelerate=0;
 	this.mousewheel=function(evt){
 		if(evt.preventDefault){
 			evt.preventDefault(); // The W3C DOM way
@@ -794,20 +796,34 @@ function kmap(map){
 		}
 		var oldzoom=this.zoom;
 		var dzoom=delta *this.zoomSpeed * this.zoomSpeedAcceleration;
-		fak=30;
+		fak=5;
 
 		var dzoom=delta/timeDelta* fak;
 
 		if(!isNaN(dzoom)){
-			var zoom=this.zoom+dzoom;
+			//var zoom=this.zoom+dzoom;
+			this.zoomAccelerate=this.zoomAccelerate+dzoom;
+			if(this.zoomAccelerate > 0.1){
+				this.zoomAccelerate=0.1;
+			}
+		}else{
+			alert("hopala");
+			this.zoomAccelerate=0;
 		}
-
+		/*
 		if(zoom < 1){
 			zoom=1;
 			dzoom=0;
 		}
+		*/
+		var that=this;
+		var tempFunction=function () {that.zooming(evt.pageX,evt.pageY)};
+		if(this.wheelZoomTimeout){
+			clearTimeout(this.wheelZoomTimeout);
+		}
+		window.setTimeout(tempFunction,10);
 
-
+/*
 		faktor=Math.pow(2,zoom);   
 		var zoomCenterDeltaX=(evt.pageX -this.mapLeft)   -this.width/2;
 		var zoomCenterDeltaY=(evt.pageY -this.mapTop)  -this.height/2;
@@ -821,8 +837,53 @@ function kmap(map){
 
 		this.setCenter2(this.center,zoom);	
 		this.renderOverlays();
+*/
 
 	}
+
+	this.wheelZoomTimeout=null;
+        this.zooming=function(pageX,pageY){
+                if(this.zoomAccelerate >0){
+                        this.zoomAccelerate=this.zoomAccelerate -0.01;
+                }else{
+                        this.zoomAccelerate=this.zoomAccelerate +0.01;
+                }
+                if(Math.abs(this.zoomAccelerate ) > 0.01){	
+			var that=this;
+			var tempFunction=function () {that.zooming(pageX,pageY)};
+			this.wheelZoomTimeout=window.setTimeout(tempFunction,10);
+                }else{
+			this.zoomAccelerate=0;
+		}
+                this.zoom=this.zoom+this.zoomAccelerate;
+                if(this.zoom < 1){
+			this.zoom=1;
+			return;
+		}
+                if(this.zoom > 18){
+			this.zoom=18;
+			return
+		}
+
+		faktor=Math.pow(2,this.zoom);   
+		var zoomCenterDeltaX=(pageX -this.mapLeft)   -this.width/2;
+		var zoomCenterDeltaY=(pageY -this.mapTop)  -this.height/2;
+		var dzoom=this.zoomAccelerate;
+		var f=Math.pow(2,dzoom );
+
+		var dx=zoomCenterDeltaX - zoomCenterDeltaX*f;
+		var dy=zoomCenterDeltaY - zoomCenterDeltaY*f;
+		//console.log("dzoom,dx,dy: "+dzoom+":"+dx+":"+dy);
+
+		this.moveX=this.moveX+dx /faktor;
+		this.moveY=this.moveY+dy /faktor;
+		//console.log("moveXY: "+this.moveX+":"+this.moveY);
+
+		//console.log(this.zoom);
+                this.setCenter2(this.center,this.zoom);
+		this.renderOverlays();
+        }
+
 
 
 	//
@@ -866,7 +927,7 @@ function kmap(map){
 		var that=this;
 		if(!zoomGap){
 		var tempFunction=function () {that.autoZoomIn(x,y,newz)};
-		window.setTimeout(tempFunction,10);
+		window.setTimeout(tempFunction,5);
 		}
 		
 	}
@@ -899,7 +960,7 @@ function kmap(map){
 		this.moveY=0;
 		this.normalize();
 		this.record();
-		this.executeCallbackFunctions();
+		//this.executeCallbackFunctions();
 		this.setCenterNoLog(center,zoom);
 	}
 
@@ -908,7 +969,7 @@ function kmap(map){
 	this.setCenter2=function(center,zoom){
 		//document.getElementById("debug").textContent=this.moveX+":"+this.moveY;
 		this.record();
-		this.executeCallbackFunctions();
+		//this.executeCallbackFunctions();
 		this.setCenterNoLog(center,zoom);
 	}
 
@@ -917,6 +978,7 @@ function kmap(map){
 	// same as setCenter but no history item is generated (for undo, redo)
 	//
 	this.setCenterNoLog=function(center,zoom){
+		this.executeCallbackFunctions();
 		/*
 		this.moveX=0;
 		this.moveY=0;
