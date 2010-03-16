@@ -981,7 +981,6 @@ function kmap(map){
 	// same as setCenter but no history item is generated (for undo, redo)
 	//
 	this.setCenterNoLog=function(center,zoom){
-		this.executeCallbackFunctions();
 		/*
 		this.moveX=0;
 		this.moveY=0;
@@ -993,6 +992,7 @@ function kmap(map){
 		this.lng=center.getLng();
 
 		this.layer(this.map,this.lat,this.lng,this.moveX,this.moveY,zoom);
+		this.executeCallbackFunctions();
 	}
 
 	//
@@ -1301,7 +1301,7 @@ function kmap(map){
 	===================================================================================*/
 
 	this.draw=function(map,lat,lng, moveX, moveY, intZoom,zoom){
-		console.log("draw");
+		//console.log("draw");
 		var faktor=Math.pow(2,intZoom);
 
 		//create new layer
@@ -1451,8 +1451,8 @@ function kmap(map){
 				default: var server="f";
 			}
 				
-//                        var src="http://"+server+".tile.openstreetmap.org/"+intZoom+"/"+xx+"/"+yy+".png";
-                        var src="/iphonemapproxy/imgproxy.php?url=http://"+server+".tile.openstreetmap.org/"+intZoom+"/"+xx+"/"+yy+".png";
+                        var src="http://"+server+".tile.openstreetmap.org/"+intZoom+"/"+xx+"/"+yy+".png";
+//                        var src="/iphonemapproxy/imgproxy.php?url=http://"+server+".tile.openstreetmap.org/"+intZoom+"/"+xx+"/"+yy+".png";
 			//see imageproxy.php for offline map usage
 
 			//bing tiles
