@@ -743,6 +743,7 @@ function kmap(map){
 	//
 	this.normalize=function(){
 		//normalize after move speed trick
+		if(this.movedLat){
 		var lat=this.movedLat;
 		var lng=this.movedLng;
 		var center=new kPoint(lat,lng);
@@ -751,6 +752,7 @@ function kmap(map){
 		this.moveY=0;
 		this.setCenterNoLog(center,zoom);
 		//end normalize (maybe this.stop needs the same)
+		}
 	}
 
 	//
