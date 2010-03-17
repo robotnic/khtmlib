@@ -462,7 +462,7 @@ function kmap(map){
 			if(this.mousedownTime!=null){	
 				var now=(new Date()).getTime();
 				if(now - this.mousedownTime < this.doubleclickTime){
-					var zoomD=Math.ceil(0.01+this.getZoom());
+					var zoomD=Math.ceil(0.01+this.getZoom() -this.intZoom);
 					this.autoZoomIn(evt.touches[0].pageX,evt.touches[0].pageY,zoomD);	
 				}
 			}
