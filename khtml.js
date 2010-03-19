@@ -243,7 +243,7 @@ function kPolyline(points,style){
 	this.addPoint=function(point){
 		this.points.push(point);
 		if(this.map){
-			this.render(this.map);
+			//this.render(this.map);
 		}
 	}
 	this.setText=function(text,style){
@@ -273,6 +273,14 @@ function kPolyline(points,style){
 	}
 	this.setPoints=function(points){
 		this.points=points;
+		if(this.map){
+			this.render(this.map);
+		}
+	}
+	this.deleteAllPoints=function(){
+		while(this.points.length >0){
+			this.points.pop();
+		}
 		if(this.map){
 			this.render(this.map);
 		}
@@ -946,6 +954,7 @@ function kmap(map){
 				this.zoomOutStarted=true;
 				var center=new kPoint(this.lat,this.lng);
 				var zoom=this.zoom - this.zoomOutSpeed;
+				if(zoom < 1) zoom=1;
 				this.setCenter2(center,zoom);
 				this.zoomOutSpeed=this.zoomOutSpeed * 1.01;
 			}
@@ -1844,7 +1853,7 @@ function kmap(map){
 
 	//touchscreen
         this.mousedownTime=null;
-        this.doubleclickTime=200;
+        this.doubleclickTime=400;
 	//mouse
         this.mousedownTime2=null;
         this.doubleclickTime2=500;
