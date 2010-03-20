@@ -603,8 +603,8 @@ function kmap(map){
 		this.mousedownTime2=(new Date()).getTime();
 
 		if(this.distanceMeasuring=="yes"){
-			this.normalize();
-			this.distanceStartpoint=this.XYTolatlng(-this.mapLeft + evt.pageX,this.mapTop+this.height - evt.pageY);
+			//this.normalize();
+			this.distanceStartpoint=this.XYTolatlng(this.moveX -this.mapLeft + evt.pageX,this.moveY+this.mapTop+this.height - evt.pageY);
 			var marker=new kMarker(this.distanceStartpoint,"green");
 			this.addOverlay(marker);
 			this.moveMarker=new kMarker(this.distanceStartpoint,"green");
@@ -654,7 +654,7 @@ function kmap(map){
 		//this.mousedownTime2=0; //if it's moved it's not a doubleclick
 		if(this.distanceMeasuring){
 			if(this.moveMarker){
-				this.normalize();
+				//this.normalize();
 				var movePoint=this.XYTolatlng(-this.mapLeft + evt.pageX,this.mapTop+this.height - evt.pageY);
 				this.moveMarker.moveTo(movePoint);
 				this.addOverlay(this.moveMarker);
@@ -1460,8 +1460,8 @@ function kmap(map){
 				default: var server="f";
 			}
 				
-                        var src="http://"+server+".tile.openstreetmap.org/"+intZoom+"/"+xx+"/"+yy+".png";
-//                        var src="/iphonemapproxy/imgproxy.php?url=http://"+server+".tile.openstreetmap.org/"+intZoom+"/"+xx+"/"+yy+".png";
+//                        var src="http://"+server+".tile.openstreetmap.org/"+intZoom+"/"+xx+"/"+yy+".png";
+                        var src="/iphonemapproxy/imgproxy.php?url=http://"+server+".tile.openstreetmap.org/"+intZoom+"/"+xx+"/"+yy+".png";
 			//see imageproxy.php for offline map usage
 
 			//bing tiles
