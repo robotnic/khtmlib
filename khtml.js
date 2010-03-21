@@ -1068,8 +1068,10 @@ function kmap(map){
 			var center=new kPoint(this.movedLat,this.movedLng);
 		}else{
 			if(!this.center){
+				/*
 				this.setCenterNoLog(new kPoint(0,0),2);
 				var center=this.center;
+				*/
 			}else{
 				var center=this.center;
 			}
