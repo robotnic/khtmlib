@@ -336,6 +336,37 @@ function kBounds(sw,ne){
 	this.getCenter=function(){
 		return this.center;
 	}
+
+        this.getOpticalCenter=function(themap){ 
+                var swXY=themap.latlngToXY(this.sw); 
+                var neXY=themap.latlngToXY(this.ne); 
+                var centerX=Math.abs(swXY["x"] + neXY["x"])/2;
+                var centerY=Math.abs(swXY["y"] + neXY["y"])/2;
+		var centerLatLng=themap.XYTolatlng(centerX,themap.height -centerY);
+		//alert(centerLatLng.getLat()+":"+centerLatLng.getLng());
+	
+		return centerLatLng;
+        }
+	this.getZoomLevel=function(themap){
+		origZoom=themap.getZoom();
+                var swXY=themap.latlngToXY(this.sw); 
+                var neXY=themap.latlngToXY(this.ne); 
+		var dx=Math.abs(swXY["x"] - neXY["x"]);
+		var dy=Math.abs(swXY["y"] - neXY["y"]);
+		var zoomX=themap.width /dx;
+		var zoomY=themap.height /dy;
+		if(zoomX > zoomY) var zoom=zoomY;
+		if(zoomX <= zoomY) var zoom=zoomX;
+
+		var dzoom=(Math.log(zoom))/(Math.log(2));
+
+		//alert(dx+":"+dy+":"+zoomX+":"+zoomY+":"+origZoom+":"+zoom+":"+dzoom);
+		var newzoom=origZoom + dzoom ;
+		return(newzoom);
+	} 
+
+
+
 	this.getDistance=function(){
 		return distance(this.sw.getLat(),this.sw.getLng(),this.ne.getLat(),this.ne.getLng());
 	}
@@ -414,7 +445,14 @@ function kmap(map){
 			var overlay=this.overlays.pop();
 			overlay.destroy();
 		}
-
+	}
+	this.removeOverlay=function(ov){
+		for(var i=0; i<this.overlays.length ;i++){
+			var overlay=this.overlays[i];
+			if(ov==overlay){
+				overlay.destroy();
+			}
+		}
 	}
 
 	//
@@ -621,8 +659,8 @@ function kmap(map){
 
 
 		if(evt.shiftKey){
-			this.selectRectLeft=evt.pageX - this.mapLeft;
-			this.selectRectTop=evt.pageY - this.mapTop;
+			this.selectRectLeft= evt.pageX - this.mapLeft;
+			this.selectRectTop= evt.pageY - this.mapTop;
 
 
 
@@ -720,15 +758,10 @@ function kmap(map){
 			this.moveMarker=null;
 		}
 		if(this.selectRect){
+			//this.normalize();
 			var p1=this.XYTolatlng(this.selectRect.offsetLeft ,this.height - this.selectRect.offsetTop -this.selectRect.offsetHeight );
 			var p2=this.XYTolatlng(this.selectRect.offsetLeft +this.selectRect.offsetWidth,this.height - this.selectRect.offsetTop  );
-			/*
-			var pp1=new kMarker(p1,"green");
-			this.addOverlay(pp1);
 
-			var pp2=new kMarker(p2,"green");
-			this.addOverlay(pp2);
-			*/
 
 
 			var bounds=new kBounds(p1,p2);
@@ -1000,6 +1033,7 @@ function kmap(map){
 		this.lat=center.getLat();
 		this.lng=center.getLng();
 
+//		alert(this.lat+":"+this.lng+":"+this.moveX+":"+this.moveY+":"+zoom);
 		this.layer(this.map,this.lat,this.lng,this.moveX,this.moveY,zoom);
 		this.executeCallbackFunctions();
 	}
@@ -1029,10 +1063,16 @@ function kmap(map){
 		if(this.moveX!=0 ||this.moveY!=0){
 			var center=new kPoint(this.movedLat,this.movedLng);
 		}else{
-			var center=this.center;
+			if(!this.center){
+				this.setCenterNoLog(new kPoint(0,0),2);
+				var center=this.center;
+			}else{
+				var center=this.center;
+			}
 		}
 		return center;
 	}
+
 
 	//
 	//  read bounds. The Coordinates at corners of the map div  sw, ne would be better (change it!)
@@ -1040,9 +1080,9 @@ function kmap(map){
 
 
 	this.getBounds=function(){
-		var p1=this.XYTolatlng(0,0);
-		var p2=this.XYTolatlng(this.width,this.height);    
-		var bounds=new kBounds(p1,p2);
+		var sw=this.XYTolatlng(0,this.height);
+		var ne=this.XYTolatlng(this.width,0);    
+		var bounds=new kBounds(sw,ne);
 	//	alert(p1.getLat()+":"+p1.getLng()+":"+p2.getLat()+":"+p2.getLng());
 		return bounds;
 	}
@@ -1052,27 +1092,33 @@ function kmap(map){
 	//
 
 	this.setBounds=function(b){
-		this.getSize();
+		//the setbounds should be a mathematical formula and not guessing around.
+		//if you know this formula pease add it here.
+		//this.getSize();
 		var p1=b.getSW();
 		var p2=b.getNE();
-		var center=b.getCenter();
-		var xy1=getTileNumber(p1.getLat(),p1.getLng(),0);
-		var xy2=getTileNumber(p2.getLat(),p2.getLng(),0);
-		var dx=Math.abs(xy1[0] - xy2[0]);
-		var dy=Math.abs(xy1[1] - xy2[1]);
-		zoomX=-(Math.log(dx))/(Math.log(2));
-		zoomY=-(Math.log(dy))/(Math.log(2));
-		if(zoomX < zoomY){
-			var zoom=zoomX;
-		}else{
-			var zoom=zoomY;
-		}
+		//alert(p1.getLat()+":"+p1.getLng()+":"+p2.getLat()+":"+p2.getLng());	
+
+		//this is a really bad workaround. No idea what's going on here.
+		//if I set the marker everything is ok. If I don't it doesn't work. 
+		//really strange side effect
+		var pp1=new kMarker(p1,"green");
+		map2.addOverlay(pp1);
+		map2.removeOverlay(pp1);
+
+
+		var that=this;
+		var center=b.getOpticalCenter(that);
+
+		var zoom=b.getZoomLevel(that);
+
 		if(zoom > 18){
 			zoom=18;
 		}
-		zoom=zoom+1;
-		this.setCenter(center,zoom);
-		this.setMapPosition();
+		if(zoom < 1){
+			zoom=1;
+		}
+		this.setCenter2(center,zoom);
 
 	}
 	this.getZoom=function(){
@@ -1093,8 +1139,9 @@ function kmap(map){
                 var lat=point.getLat();
                 var lng=point.getLng();
                 
-                tileTest=getTileNumber(lat,lng,zoom);
-                tileCenter=getTileNumber(this.movedLat,this.movedLng,zoom);
+                var tileTest=getTileNumber(lat,lng,zoom);
+		var worldCenter=this.getCenter();
+                var tileCenter=getTileNumber(worldCenter.getLat(),worldCenter.getLng(),zoom);
 
                 var faktor=Math.pow(2,this.intZoom);
                 var x=(tileCenter[0] - tileTest[0])*this.tileW*faktor ;
@@ -1110,9 +1157,9 @@ function kmap(map){
 
                 var point= new Array();
                 //alert(lng+":"+this.movedLng+":"+x+":"+tileCenter[0]+":"+tileTest[0]);
+		/*
                 point["x"]=-x +this.svgWidth/2 ;
                 point["y"]=-y +this.svgHeight/2 ;
-		/*
                 var rand=Math.random();
                 if(rand > 1.2){
                         point["x"]=0;
@@ -1120,6 +1167,8 @@ function kmap(map){
                 }
 		*/
 
+                point["x"]=-x +this.width/2 ;
+                point["y"]=-y +this.height/2 ;
 //                var debug=point["x"]+":"+point["y"]+":"+this.intZoom;
                 return(point);
 
@@ -1132,8 +1181,11 @@ function kmap(map){
 	this.latlngToXY=function(point){
 		var lat=point.getLat();
                 var lng=point.getLng();
-		tileTest=getTileNumber(lat,lng,this.intZoom);
-		tileCenter=getTileNumber(this.movedLat,this.movedLng,this.intZoom);
+		var intZoom=Math.floor(this.getZoom());	
+		tileTest=getTileNumber(lat,lng,intZoom);
+		var worldCenter=this.getCenter();
+		
+                var tileCenter=getTileNumber(worldCenter.getLat(),worldCenter.getLng(),intZoom);
 		var x=(tileCenter[0] - tileTest[0])*this.tileW*this.sc -this.width/2;
 		var y=(tileCenter[1] - tileTest[1])*this.tileW*this.sc -this.height/2; 
 
@@ -1186,10 +1238,12 @@ function kmap(map){
 
 	//
 	// read the size of the DIV that will contain the map
+	// this method is buggy - no good
 	//
 
 
 	this.getSize=function(){
+		//alert("buggy");	
 		this.width=this.map.parentNode.offsetWidth;
 		this.height=this.map.parentNode.offsetHeight;
 		var obj=this.map
@@ -1724,7 +1778,6 @@ function kmap(map){
         var getTileNumber=function(lat, lon, zoom) {
                 var xtile = ( (lon + 180) / 360 * (1<<zoom) ) ;
                 var ytile = ( (1 - Math.log(Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180)) / Math.PI) / 2 * (1<<zoom) ) ;
-//		alert("LL: "+lon+":"+lat+":"+xtile+":"+zoom);
                 var returnArray=new Array(xtile,ytile);
                 return returnArray;
         }
