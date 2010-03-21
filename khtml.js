@@ -555,6 +555,10 @@ function kmap(map){
 					var center=new kPoint(this.lat,this.lng);
 					this.setCenter2(center,this.zoom);
 				}
+				if((Math.abs(this.moveX -this.startMoveX) > 0.01) ||(Math.abs(this.moveY - this.startMoveY) >0.01)){
+					this.mousedownTime=null;  //prevents doubleclick if map is moved already
+				
+				}
 			}else{
 				//alert("no move");
 			}
@@ -985,7 +989,8 @@ function kmap(map){
 			var now=(new Date()).getTime();
 			if(now - this.mousedownTime > this.zoomOutTime){
 				this.zoomOutStarted=true;
-				var center=new kPoint(this.lat,this.lng);
+				//var center=new kPoint(this.lat,this.lng);
+				var center=this.center;
 				var zoom=this.zoom - this.zoomOutSpeed;
 				if(zoom < 1) zoom=1;
 				this.setCenter2(center,zoom);
