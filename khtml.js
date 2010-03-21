@@ -769,7 +769,6 @@ function kmap(map){
 
 
 			var bounds=new kBounds(p1,p2);
-			//alert(p1.getLat()+":"+p1.getLng()+":"+p2.getLat()+":"+p2.getLng());
 			this.setBounds(bounds);
 			this.selectRect.parentNode.removeChild(this.selectRect);			
 			this.selectRect=null;
@@ -1108,9 +1107,8 @@ function kmap(map){
 		//if I set the marker everything is ok. If I don't it doesn't work. 
 		//really strange side effect
 		var pp1=new kMarker(p1,"green");
-		map2.addOverlay(pp1);
-		map2.removeOverlay(pp1);
-
+		this.addOverlay(pp1);
+		this.removeOverlay(pp1);
 
 		var that=this;
 		var center=b.getOpticalCenter(that);
