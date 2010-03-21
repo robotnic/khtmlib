@@ -1932,6 +1932,9 @@ function kmap(map){
         if(navigator.userAgent.indexOf("Safari")!=-1){
                 this.css3d=true;
         }
+        if(navigator.userAgent.indexOf("Android")!=-1){
+                this.css3d=false;
+	}
 
 	if(this.internetExplorer){
 		var w=map;
