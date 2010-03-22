@@ -1519,8 +1519,8 @@ function kmap(map){
 				default: var server="f";
 			}
 				
-                        var src="http://"+server+".tile.openstreetmap.org/"+intZoom+"/"+xx+"/"+yy+".png";
-//                        var src="/iphonemapproxy/imgproxy.php?url=http://"+server+".tile.openstreetmap.org/"+intZoom+"/"+xx+"/"+yy+".png";
+//                        var src="http://"+server+".tile.openstreetmap.org/"+intZoom+"/"+xx+"/"+yy+".png";
+                        var src="/iphonemapproxy/imgproxy.php?url=http://"+server+".tile.openstreetmap.org/"+intZoom+"/"+xx+"/"+yy+".png";
 			//see imageproxy.php for offline map usage
 
 			//bing tiles
@@ -1835,9 +1835,9 @@ function kmap(map){
                 this.internetExplorer=true;
 		//alert("Sorry, Internet Explorer does not support this map, please use a good Browser like chrome, safari, opera.");
         }
-        if(navigator.userAgent.indexOf("Android")!=-1){
+	if(navigator.userAgent.indexOf("Android")!=-1){
                 this.internetExplorer=true;
-		//no xhtml, no svg
+                //no xhtml, no svg
         }
 
 
@@ -1881,16 +1881,15 @@ function kmap(map){
         this.getSize();
 
         this.overlayDiv=document.createElement("div");
-        this.overlayDiv.style.width=this.width+"px";
-        this.overlayDiv.style.height=this.height +"px";
+        this.overlayDiv.style.width="100%";
+        this.overlayDiv.style.height="100%";
         this.overlayDiv.style.position="absolute";
-        this.overlayDiv.style.overflow="hidden";
 	map.appendChild(this.overlayDiv);
 
 	if(!this.internetExplorer){
 		this.svg=document.createElementNS("http://www.w3.org/2000/svg","svg");
-		this.svg.style.width=this.width;
-		this.svg.style.height=this.height;
+		this.svg.style.width="100%";
+		this.svg.style.height="100%";
 		this.svg.style.position="absolute";
 		map.appendChild(this.svg);
 		map.style.overflow="hidden";
