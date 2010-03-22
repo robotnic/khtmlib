@@ -1,4 +1,4 @@
 khtmlib is a javascript map library like google maps api or openlayers.
 It allows to show openstreetmap tiles in a very smooth way.
 For webkit hardware accelerated image zoom is implemented. 
-Fast vectorgraphics as overlay is a goal.
+Fast vectorgraphics as overlay is a goal...
