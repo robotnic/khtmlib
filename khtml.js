@@ -1835,6 +1835,11 @@ function kmap(map){
                 this.internetExplorer=true;
 		//alert("Sorry, Internet Explorer does not support this map, please use a good Browser like chrome, safari, opera.");
         }
+        if(navigator.userAgent.indexOf("Android")!=-1){
+                this.internetExplorer=true;
+		//no xhtml, no svg
+        }
+
 
 	this.maxIntZoom=18;
         this.mapParent=map;
