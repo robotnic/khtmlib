@@ -1016,6 +1016,7 @@ function kmap(map){
 	// same as setCenter but moveX,moveY are not reset (for internal use)
 
 	this.setCenter2=function(center,zoom){
+		//alert(zoom);
 		//document.getElementById("debug").textContent=this.moveX+":"+this.moveY;
 		this.record();
 		//this.executeCallbackFunctions();
@@ -1098,24 +1099,44 @@ function kmap(map){
 	//
 
 	this.setBounds=function(b){
+		this.normalize();
 		//the setbounds should be a mathematical formula and not guessing around.
 		//if you know this formula pease add it here.
 		//this.getSize();
 		var p1=b.getSW();
 		var p2=b.getNE();
-		//alert(p1.getLat()+":"+p1.getLng()+":"+p2.getLat()+":"+p2.getLng());	
 
-		//this is a really bad workaround. No idea what's going on here.
-		//if I set the marker everything is ok. If I don't it doesn't work. 
-		//really strange side effect
-		var pp1=new kMarker(p1,"green");
-		this.addOverlay(pp1);
-		this.removeOverlay(pp1);
+		var minlat=p1.getLat();
+		var maxlat=p2.getLat();
+		var minlng=p1.getLng();
+		var maxlng=p2.getLng();
 
-		var that=this;
-		var center=b.getOpticalCenter(that);
-
-		var zoom=b.getZoomLevel(that);
+		var minlat360=lat2y(minlat);
+		var maxlat360=lat2y(maxlat);
+		var centerLng=(minlng+maxlng)/2;
+		var centerLat360=(minlat360 + maxlat360)/2;
+		var centerLat=y2lat(centerLat360);
+		var center=new kPoint(centerLat,centerLng);
+		var extendX=Math.abs(maxlat360 - minlat360);
+		var extendY=Math.abs(maxlng - minlng);
+		if(extendX / this.width < extendY / this.height){
+			var extend=extendX;
+			var screensize=this.width;	
+		}else{
+			var extend=extendY;
+			var screensize=this.height;	
+		}
+		//alert(extend);
+		//zoomlevel 1: 512 pixel
+		//zoomlevel 2: 1024 pixel
+		//...
+		//extend = 360 > zoomlevel 1 , at 512px screen
+		//extend = 360 > zoomlevel 2 , at 1024px screen
+		
+		//extend at zoomlevel1: extend/360 * 512px	
+		var scalarZoom=360/extend;
+		var screenfaktor= 512/screensize;
+                var zoom=(Math.log(scalarZoom / screenfaktor))/(Math.log(2)) ;
 
 		if(zoom > 18){
 			zoom=18;
@@ -1123,9 +1144,46 @@ function kmap(map){
 		if(zoom < 1){
 			zoom=1;
 		}
-		this.setCenter2(center,zoom);
+		if(this.center){
+			this.rectZoomAnimation(center,zoom);
+		}else{	
+			this.setCenter2(center,zoom);
+		}
 
 	}
+	this.rectZoomAnimation=function(newCenter,newZoom){
+		var oldZoom=this.getZoom();
+		var oldCenter=this.getCenter();
+		
+		var oldLat=oldCenter.getLat();
+		var oldLng=oldCenter.getLng();
+		var newLat=newCenter.getLat();
+		var newLng=newCenter.getLng();
+
+		var zoomSteps=40;
+		var dLat=(newLat - oldLat)/zoomSteps;
+		var dLng=(newLng - oldLng)/zoomSteps;
+		var dZoom=(newZoom - oldZoom)/zoomSteps;
+		
+		this.rectZoomAnimationRecursion(oldLat,oldLng,oldZoom,dLat,dLng,dZoom,zoomSteps);
+
+	}
+
+	this.rectZoomAnimationRecursion=function(oldLat,oldLng,oldZoom,dLat,dLng,dZoom,zoomSteps){
+			var lat=oldLat+dLat;
+			var lng=oldLng+dLng;
+			var zoom=oldZoom+dZoom;
+			var that=this;
+			if(zoomSteps >0){
+				tempFunction=function () {that.rectZoomAnimationRecursion(lat,lng,zoom,dLat,dLng,dZoom,zoomSteps -1)}
+				window.setTimeout(tempFunction,10);
+			}
+			this.setCenter2(new kPoint(lat,lng),zoom);
+	}
+
+
+
+
 	this.getZoom=function(){
 		return this.zoom;
 	}
@@ -1835,11 +1893,6 @@ function kmap(map){
                 this.internetExplorer=true;
 		//alert("Sorry, Internet Explorer does not support this map, please use a good Browser like chrome, safari, opera.");
         }
-	if(navigator.userAgent.indexOf("Android")!=-1){
-                this.internetExplorer=true;
-                //no xhtml, no svg
-        }
-
 
 	this.maxIntZoom=18;
         this.mapParent=map;
@@ -1884,6 +1937,7 @@ function kmap(map){
         this.overlayDiv.style.width="100%";
         this.overlayDiv.style.height="100%";
         this.overlayDiv.style.position="absolute";
+        this.overlayDiv.style.overflow="hidden";
 	map.appendChild(this.overlayDiv);
 
 	if(!this.internetExplorer){
