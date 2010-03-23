@@ -969,6 +969,7 @@ function kmap(map){
 
 
 		var center=new kPoint(this.lat,this.lng);
+		if(zoom > 18) zoom=18;
 		this.setCenter2(center,zoom);
 		var newz=z - dzoom;
 		var that=this;
