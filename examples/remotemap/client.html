@@ -1,0 +1,93 @@
+<html>
+<head>
+<title>automatic map zoom</title>
+
+<script type="text/javascript" src="../../khtml.js"> </script>
+
+<script type="text/javascript">
+
+var animtime=1000;
+var steps=10;
+
+function init(){
+
+        var centerLat=48.2;
+        var centerLon=15.633;
+
+
+        map=new kmap(document.getElementById("map"));
+        var center=new kPoint(centerLat,centerLon);
+        var center=new kPoint(-33.42628,-70.56656);   //santiago
+        map.setCenter(center,18);
+
+	setInterval("readposition()",animtime);
+
+}
+
+function readposition(){
+	var xmlhttp=new XMLHttpRequest();
+	xmlhttp.open("GET","syncdata/position.xml",true);
+	xmlhttp.onreadystatechange=function(){
+		if(xmlhttp.readyState==4){
+			setpos(xmlhttp.responseXML);
+		}
+
+	}
+	xmlhttp.send(null);
+}
+
+function setpos(dom){
+	var root=dom.documentElement;
+	var lat=root.getAttribute("lat");
+	var lng=root.getAttribute("lng");
+	var zoom=root.getAttribute("zoom");
+	//map.setCenter(new kPoint(lat,lng),zoom);
+	animate(lat,lng,zoom);
+}
+
+function animate(newlat,newlng,newzoom){
+	var oldcenter=map.getCenter();
+	var oldlat=oldcenter.getLat();
+	var oldlng=oldcenter.getLng();
+	var oldzoom=map.getZoom();
+
+	//energiesaver
+	cont=false;
+	if(oldlat!=newlat) cont=true;
+	if(oldlng!=newlng) cont=true;
+	if(oldzoom!=newzoom) cont=true;
+
+	if(!cont) return;
+	
+
+	var dlat=newlat - oldlat;
+	var dlng=newlng - oldlng;
+	var dzoom=newzoom - oldzoom;
+
+	
+	for(var i=0;i < steps; i++){
+		var lat=oldlat + dlat/steps*i;
+		var lng=oldlng + dlng/steps*i;
+		var zoom=oldzoom + dzoom/steps*i;
+		/*
+		var tempFunction=function(){
+			//console.log(lat,lng,zoom);
+			map.setCenter(new kPoint(lat,lng),zoom +3);
+		}
+		*/
+		//setTimeout(tempFunction,i/steps* animtime);
+		var cmd="map.setCenter(new kPoint("+lat+","+lng+"),"+zoom+")";
+		setTimeout(cmd,i*100);
+	}
+}
+
+
+</script>
+</head>
+<body onload="init()" style="margin:0">
+<div style="position:absolute;top:0px;left:0px;z-index:10">
+</div>
+<div id="map" style="position:absolute;top:0px;width:100%;height:100%"> </div>
+
+</body>
+</html>
