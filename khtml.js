@@ -424,9 +424,15 @@ function kmap(map){
 			this.svg.style.display="";	
 		}
 		var that=this;
+
 		for(obj in this.overlays){
-			this.overlays[obj].render(that);
+			try{
+				this.overlays[obj].render(that);
+			}catch(e){
+				//hello ie
+			}
 		}
+
 	}
 
 	this.hideOverlays=function(){
@@ -627,6 +633,38 @@ function kmap(map){
 	//  mouse events
 	//
 
+	//ie sucks
+	this.pageX=function(evt){
+		try{
+		if (evt.pageX === undefined) {
+			var px= evt.clientX + document.documentElement.scrollLeft;
+		}else{
+			var px= evt.pageX;
+		}
+		return px;
+		}catch(e){
+			return this.width/2;
+		}
+	}
+	this.pageY=function(evt){
+		try{
+		if (evt.pageY === undefined) {
+			var py= evt.clientY + document.documentElement.scrollTop;
+		}else{
+			var py= evt.pageY;
+		}
+		return py;
+		}catch(e){
+			return this.height/2;
+		}
+	}
+
+	this.doubleclick=function(evt){
+		var zoom=this.getZoom();
+		var zoomD=Math.ceil(0.01+this.getZoom())-zoom;
+		this.autoZoomIn(this.pageX(evt) -this.mapLeft,this.pageY(evt) -this.mapTop,zoomD);
+	}
+
 	this.mousedown=function(evt){
 		if(evt.preventDefault){
 			evt.preventDefault(); // The W3C DOM way
@@ -637,16 +675,19 @@ function kmap(map){
 		if(this.mousedownTime2!=null){
 			var now=(new Date()).getTime();
 			if(now - this.mousedownTime2 < this.doubleclickTime2){
+				/*
 				var zoom=this.getZoom();
 				var zoomD=Math.ceil(0.01+this.getZoom())-zoom;
-				this.autoZoomIn(evt.pageX -this.mapLeft,evt.pageY -this.mapTop,zoomD);
+				this.autoZoomIn(this.pageX(evt) -this.mapLeft,this.pageY(evt) -this.mapTop,zoomD);
+				*/
+				this.doubleclick(evt);
 			}
 		}
 		this.mousedownTime2=(new Date()).getTime();
 
 		if(this.distanceMeasuring=="yes"){
 			//this.normalize();
-			this.distanceStartpoint=this.XYTolatlng(this.moveX -this.mapLeft + evt.pageX,this.moveY+this.mapTop+this.height - evt.pageY);
+			this.distanceStartpoint=this.XYTolatlng(this.moveX -this.mapLeft + this.pageX(evt),this.moveY+this.mapTop+this.height - this.pageY(evt));
 			var marker=new kMarker(this.distanceStartpoint,"green");
 			this.addOverlay(marker);
 			this.moveMarker=new kMarker(this.distanceStartpoint,"green");
@@ -663,12 +704,12 @@ function kmap(map){
 
 
 		if(evt.shiftKey){
-			this.selectRectLeft= evt.pageX - this.mapLeft;
-			this.selectRectTop= evt.pageY - this.mapTop;
+			this.selectRectLeft= this.pageX(evt) - this.mapLeft;
+			this.selectRectTop= this.pageY(evt) - this.mapTop;
 
 
 
-	//		this.distanceStartpoint=this.XYTolatlng(-this.mapLeft + evt.pageX,this.mapTop+this.height - evt.pageY);
+	//		this.distanceStartpoint=this.XYTolatlng(-this.mapLeft + this.pageX(evt),this.mapTop+this.height - this.pageY(evt));
 
 			this.selectRect=document.createElement("div");
 			this.selectRect.style.left=this.selectRectLeft+"px";
@@ -680,8 +721,8 @@ function kmap(map){
 			this.map.parentNode.appendChild(this.selectRect);	
 		}else{
 			this.hideOverlays();
-			this.startMoveX=this.moveX - (evt.pageX - this.mapLeft) /this.faktor /this.sc;
-			this.startMoveY=this.moveY - (evt.pageY - this.mapTop)  /this.faktor/this.sc;
+			this.startMoveX=this.moveX - (this.pageX(evt) - this.mapLeft) /this.faktor /this.sc;
+			this.startMoveY=this.moveY - (this.pageY(evt) - this.mapTop)  /this.faktor/this.sc;
 			this.movestarted=true;
 		}
 		return false;
@@ -697,7 +738,7 @@ function kmap(map){
 		if(this.distanceMeasuring){
 			if(this.moveMarker){
 				//this.normalize();
-				var movePoint=this.XYTolatlng(-this.mapLeft + evt.pageX,this.mapTop+this.height - evt.pageY);
+				var movePoint=this.XYTolatlng(-this.mapLeft + this.pageX(evt),this.mapTop+this.height - this.pageY(evt));
 				this.moveMarker.moveTo(movePoint);
 				this.addOverlay(this.moveMarker);
 				//add line
@@ -738,13 +779,14 @@ function kmap(map){
 		}
 		if(evt.shiftKey){
 			if(this.selectRect){
-				this.selectRect.style.width=evt.pageX - this.mapLeft - this.selectRectLeft+"px";
-				this.selectRect.style.height=evt.pageY - this.mapTop - this.selectRectTop +"px";
+				this.selectRect.style.width=this.pageX(evt) - this.mapLeft - this.selectRectLeft+"px";
+				this.selectRect.style.height=this.pageY(evt) - this.mapTop - this.selectRectTop +"px";
 			}
 		}else{
 			if(this.movestarted){
-				this.moveX=(evt.pageX - this.mapLeft) / this.faktor/this.sc + this.startMoveX;
-				this.moveY=(evt.pageY - this.mapTop) / this.faktor/this.sc + this.startMoveY;
+				
+				this.moveX=(this.pageX(evt) - this.mapLeft) / this.faktor/this.sc + this.startMoveX;
+				this.moveY=(this.pageY(evt) - this.mapTop) / this.faktor/this.sc + this.startMoveY;
 				var center=new kPoint(this.lat,this.lng);
 				//alert(evt.pageX);
 				this.setCenter2(center,this.zoom);
@@ -833,6 +875,7 @@ function kmap(map){
 		if (navigator.userAgent.match("Safari") ){
 			delta = evt.wheelDelta/150;
 		}
+
 		var now=(new Date()).getTime();
 		var timeDelta=now - this.zoomSpeedTimer;
 		this.zoomSpeedTimer=now;
@@ -846,6 +889,10 @@ function kmap(map){
 		fak=5;
 
 		var dzoom=delta/timeDelta* fak;
+		document.getElementById("debug").textContent="zoom: "+this.zoom+" dzoom: "+dzoom+" zoomAccelerate: "+this.zoomAccelerate;
+
+		if(dzoom > 0 && this.zoomAccelerate < 0) this.zoomAccelerate=0;
+		if(dzoom < 0 && this.zoomAccelerate > 0) this.zoomAccelerate=0;
 
 		if(!isNaN(dzoom)){
 			//var zoom=this.zoom+dzoom;
@@ -857,14 +904,15 @@ function kmap(map){
 			alert("hopala");
 			this.zoomAccelerate=0;
 		}
-		/*
-		if(zoom < 1){
-			zoom=1;
+	
+		if(this.zoom < 1){
+			this.zoom=1;
 			dzoom=0;
 		}
-		*/
+
 		var that=this;
-		var tempFunction=function () {that.zooming(evt.pageX,evt.pageY)};
+		clearTimeout(this.wheelZoomTimeout);
+		var tempFunction=function () {that.zooming(that.pageX(evt),that.pageY(evt))};
 		if(this.wheelZoomTimeout){
 			clearTimeout(this.wheelZoomTimeout);
 		}
@@ -872,8 +920,8 @@ function kmap(map){
 
 /*
 		faktor=Math.pow(2,zoom);   
-		var zoomCenterDeltaX=(evt.pageX -this.mapLeft)   -this.width/2;
-		var zoomCenterDeltaY=(evt.pageY -this.mapTop)  -this.height/2;
+		var zoomCenterDeltaX=(this.pageX(evt) -this.mapLeft)   -this.width/2;
+		var zoomCenterDeltaY=(this.pageY(evt) -this.mapTop)  -this.height/2;
 		var f=Math.pow(2,dzoom );
 
 		var dx=zoomCenterDeltaX - zoomCenterDeltaX*f;
@@ -890,6 +938,7 @@ function kmap(map){
 
 	this.wheelZoomTimeout=null;
         this.zooming=function(pageX,pageY){
+
                 if(this.zoomAccelerate >0){
                         this.zoomAccelerate=this.zoomAccelerate -0.01;
                 }else{
@@ -898,18 +947,25 @@ function kmap(map){
                 if(Math.abs(this.zoomAccelerate ) > 0.01){	
 			var that=this;
 			var tempFunction=function () {that.zooming(pageX,pageY)};
+			clearTimeout(this.wheelZoomTimeout);
 			this.wheelZoomTimeout=window.setTimeout(tempFunction,10);
+			if(this.wheelZoomTimeout){
+				clearTimeout(this.wheelZoomTimeout);
+			}
                 }else{
 			this.zoomAccelerate=0;
 		}
+		if(this.zoomAccelerate > 0.3) this.zoomAccelerate=0.3;
+		if(this.zoomAccelerate < -0.3) this.zoomAccelerate=-0.3;
                 this.zoom=this.zoom+this.zoomAccelerate;
+		var moveable=true;
                 if(this.zoom < 1){
 			this.zoom=1;
-			return;
+			moveable=false;
 		}
                 if(this.zoom > 18){
 			this.zoom=18;
-			return
+			moveable=false;
 		}
 
 		faktor=Math.pow(2,this.zoom);   
@@ -922,8 +978,10 @@ function kmap(map){
 		var dy=zoomCenterDeltaY - zoomCenterDeltaY*f;
 		//console.log("dzoom,dx,dy: "+dzoom+":"+dx+":"+dy);
 
+		if(moveable){
 		this.moveX=this.moveX+dx /faktor;
 		this.moveY=this.moveY+dy /faktor;
+		}
 		//console.log("moveXY: "+this.moveX+":"+this.moveY);
 
 		//console.log(this.zoom);
@@ -1894,7 +1952,6 @@ function kmap(map){
                 this.internetExplorer=true;
 		//alert("Sorry, Internet Explorer does not support this map, please use a good Browser like chrome, safari, opera.");
         }
-
 	this.maxIntZoom=18;
         this.mapParent=map;
 	mapInit=map;
@@ -1921,7 +1978,6 @@ function kmap(map){
 	map.style.left=left+"px";
 */
 	//document.body.appendChild(map);
-
 
 	//distance tool
 	this.distanceMeasuring="no";
@@ -2012,9 +2068,9 @@ function kmap(map){
 	Event.attach(w,"mouseup",this.mouseup,this,false);
 	Event.attach(w,"orientationchange",this.reSize,this,false);
 	Event.attach(map,"DOMMouseScroll",this.mousewheel,this,false);
+	Event.attach(map,"dblclick",this.doubleclick,this,false);
+
 }
-
-
 
 
 
