@@ -287,7 +287,7 @@ function kPolyline(points,style){
 	}
 	this.destroy=function(){
 		debug="";
-		document.getElementById("debug").textContent=debug;
+		//document.getElementById("debug").textContent=debug;
 		while(this.renderComplete.length >0){
 			this.renderComplete.pop();
 		}
@@ -889,7 +889,7 @@ function kmap(map){
 		fak=5;
 
 		var dzoom=delta/timeDelta* fak;
-		document.getElementById("debug").textContent="zoom: "+this.zoom+" dzoom: "+dzoom+" zoomAccelerate: "+this.zoomAccelerate;
+		//document.getElementById("debug").textContent="zoom: "+this.zoom+" dzoom: "+dzoom+" zoomAccelerate: "+this.zoomAccelerate;
 
 		if(dzoom > 0 && this.zoomAccelerate < 0) this.zoomAccelerate=0;
 		if(dzoom < 0 && this.zoomAccelerate > 0) this.zoomAccelerate=0;
@@ -1809,7 +1809,7 @@ function kmap(map){
 		if(n2 <10) nn="00000";
 		var nnn=n1+nn+n2;
 		*/
-		document.getElementById("debug").textContent=n+":"+nn;
+		//document.getElementById("debug").textContent=n+":"+nn;
 		return n;
 	}
 
