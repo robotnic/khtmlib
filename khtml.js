@@ -507,6 +507,7 @@ function kmap(map){
 		} else {
 			evt.returnValue = false; // The IE way
 		}
+		this.moveAnimationBlocked=true;
 		this.hideOverlays();
 		if(evt.touches.length ==1){
 			this.startMoveX=this.moveX - evt.touches[0].pageX /this.faktor /this.sc;
@@ -550,6 +551,8 @@ function kmap(map){
 	//	this.mousedownTime=null;
 		if(evt.touches.length ==1){
 			if(this.moveok){
+				this.lastMoveX=this.moveX;
+				this.lastMoveY=this.moveY;
 				this.moveX=evt.touches[0].pageX / this.faktor/this.sc + this.startMoveX;
 				this.moveY=evt.touches[0].pageY / this.faktor/this.sc + this.startMoveY;
 				if(!this.zoomOutStarted){
@@ -560,6 +563,7 @@ function kmap(map){
 					}
 					var center=new kPoint(this.lat,this.lng);
 					this.setCenter2(center,this.zoom);
+					this.moveAnimationBlocked=false;
 				}
 				if((Math.abs(this.moveX -this.startMoveX) > 0.01) ||(Math.abs(this.moveY - this.startMoveY) >0.01)){
 					this.mousedownTime=null;  //prevents doubleclick if map is moved already
@@ -618,6 +622,21 @@ function kmap(map){
 		this.zoomOutStarted=false;
 		if(evt.touches.length==0){
 			this.moveok=true;
+			if(this.moveAnimationMobile){
+				if(this.moveAnimationBlocked==false){
+					var speedX=this.lastMoveX - this.moveX;
+					var speedY=this.lastMoveY - this.moveY;
+					clearTimeout(this.animateMoveTimeout);
+					this.animateMove(speedX,speedY);
+				}
+			}
+			/*
+			var that=this;
+			var tempFunction=function () {that.moveAnimationBlocked=false};
+			setTimeout(tempFunction,this.doubleclickTime);
+			*/
+
+
 		}
 	/*
 		this.moveX=0;
@@ -672,6 +691,7 @@ function kmap(map){
 			window.event.returnValue = false; // The IE way
 		}
 
+		this.moveAnimationBlocked=true;
 		if(this.mousedownTime2!=null){
 			var now=(new Date()).getTime();
 			if(now - this.mousedownTime2 < this.doubleclickTime2){
@@ -784,12 +804,15 @@ function kmap(map){
 			}
 		}else{
 			if(this.movestarted){
-				
+				this.lastMoveX=this.moveX;
+				this.lastMoveY=this.moveY;
 				this.moveX=(this.pageX(evt) - this.mapLeft) / this.faktor/this.sc + this.startMoveX;
 				this.moveY=(this.pageY(evt) - this.mapTop) / this.faktor/this.sc + this.startMoveY;
+				
 				var center=new kPoint(this.lat,this.lng);
 				//alert(evt.pageX);
 				this.setCenter2(center,this.zoom);
+				this.moveAnimationBlocked=false;
 			}
 		}
 		return false;
@@ -819,7 +842,14 @@ function kmap(map){
 		//using this normalize some things are working better, others not so goot. 
 		//delelte it will solve some problems but bring other problems
 		//this.normalize();
+		if(this.moveAnimationDesktop){
 
+			if(this.moveAnimationBlocked==false){
+				var speedX=this.lastMoveX - this.moveX;
+				var speedY=this.lastMoveY - this.moveY;
+				this.animateMove(speedX,speedY);	
+			}
+		}
 		this.movestarted=false;
 		this.renderOverlays();
 	}
@@ -988,6 +1018,23 @@ function kmap(map){
                 this.setCenter2(this.center,this.zoom);
 		this.renderOverlays();
         }
+
+	//
+	//  Map continues moving after mouse up
+	//
+
+	this.animateMove=function(speedX,speedY){
+		if(Math.abs(speedX) <=0.00001 && Math.abs(speedY) <=0.00001)return;
+		this.moveX=-speedX +this.moveX;
+		this.moveY=-speedY +this.moveY;
+
+		var that=this;
+                var tempFunction=function () {that.animateMove(speedX*0.9 , speedY*0.9 )};
+                this.animateMoveTimeout=window.setTimeout(tempFunction,20);
+                this.setCenter2(this.center,this.zoom);
+		//document.getElementById("debug").textContent=speedX+":"+speedY+":"+animcount;
+		//animcount++;
+	}
 
 
 
@@ -1647,7 +1694,7 @@ function kmap(map){
 			//end bing tiles
 
 			//
-                        var id="http://"+server+"c.tile.openstreetmap.org/"+intZoom+"/"+xxx+"/"+yyy+".png";
+                        var id="http://"+server+".tile.openstreetmap.org/"+intZoom+"/"+xxx+"/"+yyy+".png";
 		
 			//draw images only if they don't exist on the layer	
                         if(this.layers[intZoom]["images"][id] == null){
@@ -1983,6 +2030,9 @@ function kmap(map){
 	this.distanceMeasuring="no";
 	this.moveMarker=null;
 	this.measureLine=null;
+	this.moveAnimationMobile=true;
+	this.moveAnimationDesktop=false;
+	this.moveAnimationBlocked=false;
 
 
         this.map=document.createElement("div");
@@ -2014,6 +2064,10 @@ function kmap(map){
 
         this.moveX=0;
         this.moveY=0;
+
+        this.lastMoveX=0;
+        this.lastMoveY=0;
+
         this.startMoveX=0;
         this.startMoveY=0;
         this.sc=1;
