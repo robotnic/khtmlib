@@ -2100,6 +2100,9 @@ function kmap(map){
         if(navigator.userAgent.indexOf("iPhone OS")!=-1){
                 this.css3d=true;
         }
+        if(navigator.userAgent.indexOf("iPad")!=-1){
+                this.css3d=true;
+        }
         if(navigator.userAgent.indexOf("Safari")!=-1){
                 this.css3d=true;
         }
