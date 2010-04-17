@@ -1,6 +1,7 @@
-ont-size:6px;
-color:green;
-}
+<html>
+<head>
+<style type="text/css">
+
 td{
 vertical-align:top;
 background-color:white;
@@ -21,9 +22,9 @@ function init(){
 
 	//second map
         map2=new kmap(document.getElementById("map2"));
-        var nw=new kPoint(48,15.4);
-        var se=new kPoint(48.4,16.8);
-        var b=new kBounds(nw,se);
+        var sw=new kPoint(48,15.4);
+        var ne=new kPoint(48.4,16.8);
+        var b=new kBounds(sw,ne);
         map2.setBounds(b);
 
 
@@ -33,10 +34,27 @@ function init(){
 	map3.setCenter(center,9);
 
         var flagcenter1=new kPoint(48.197231,15.645451);
-        var m=new kMarker(flagcenter1);
+        var img=document.createElement("img");
+        img.setAttribute("src","images/dot_green.png");
+        img.style.position="absolute";
+        img.style.top="-3px";    //<---  flag
+        img.style.left="-4px";    //<---  flag
+        img.style.width="8px";    //<---  flag
+        img.style.height="8px";
+        var m=new kMarker(flagcenter1,img);
         map3.addOverlay(m);
+
+
+
         var flagcenter1=new kPoint(48.290231,15.605451);
-        var m=new kMarker(flagcenter1);
+        var img=document.createElement("img");
+        img.setAttribute("src","images/dot_green.png");
+        img.style.position="absolute";
+        img.style.top="-3px";    //<---  flag
+        img.style.left="-4px";    //<---  flag
+        img.style.width="8px";    //<---  flag
+        img.style.height="8px";
+        var m=new kMarker(flagcenter1,img);
         map3.addOverlay(m);
 
 
@@ -148,9 +166,9 @@ It's optimized for speed and uses browser features like
 <p>
 It's a low level library that allows you to make librarys with more features or web application on   top of it. A central feature is  multitouch support for iphone.
 </p>
-<p>At the moment the lib has 40kByte and is one file (+ one flag image "<a href="images/flag.png">images/flag.png</a>) &lt;---- update pease.</p>
+<p>At the moment the lib has 60kByte </p>
 <h4>Open the map in normal Browser</h4>
-<a href="http://www.khtml.org/iphonemap/simple.html"/>open map</a>
+<a href="examples/simple.html"/>open map</a>
 <br/>
 <br/>
 Please use mousewheel.<br/>
@@ -174,7 +192,7 @@ Alpha, API can still be discussed (give feedback)<br/>
 Optimized for webkit browsers including iPhone
 </li>
 <li>
-Internet Explorer and Android Browser not supported (maybe IE 9.0 will support SVG);
+Android Browser not supported; no vector support for IE 6-8
 
 </li>
 </ul>
@@ -221,9 +239,9 @@ function init(){
 &lt;script type="text/javascript">
 function init(){
         map2=new kmap(document.getElementById("map2"));
-        var nw=new kPoint(48,15.4);
-        var se=new kPoint(48.4,16.8);
-        var b=new kBounds(nw,se);
+        var sw=new kPoint(48,15.4);
+        var ne=new kPoint(48.4,16.8);
+        var b=new kBounds(sw,ne);
         map2.setBounds(b);
 
 
@@ -242,12 +260,20 @@ function init(){
 </td>
 <td>
 <h5>Markers</h5>
-<img src="images/flag.png"/>
+<img src="images/dot_green.png"/>
 <pre>
 	...	
-        var flagcenter1=new kPoint(48.290231,15.605451);
-        var m=new kMarker(flagcenter1);
-        map2.addOverlay(m);
+
+        var flagcenter1=new kPoint(48.197231,15.645451);
+        var img=document.createElement("img");
+        img.setAttribute("src","images/dot_green.png");
+        img.style.position="absolute";
+        img.style.top="-3px";  
+        img.style.left="-4px";
+        img.style.width="8px";
+        img.style.height="8px";
+        var m=new kMarker(flagcenter1,img);
+        map3.addOverlay(m);
 	...
 </pre>
 <h5>Status</h5>
@@ -350,19 +376,21 @@ var lat=point.getLat();
 var lng=point.getLng();
 
 
-var pointNW=bounds.getNW();
+var pointSW=bounds.getSW();
 
 
-var pointSE=bounds.getSE();
+var pointNE=bounds.getNE();
 
 
 var centerPoint=bounds.getCenter();
 
 
-var bounds=kBounds(pointNW,pointSE);
+var bounds=kBounds(pointSW,pointNE);
 
 
-var distance=bounds.getDistance();  //distance from NW to SE in Meter
+var distance=bounds.getDistance();  //distance from SW to NE in Meter
+
+map.animatedGoto(new kPoint(lat,lng),zoom,time);
 
 </pre>
 
@@ -371,11 +399,9 @@ var distance=bounds.getDistance();  //distance from NW to SE in Meter
 </table>
 
 <h4>Improvements</h4>
-I was working now one week on vector graphic speed improvement .
-It will be fast with up to at least 100 SVG lines, target is much more.
-If you are interested in thesting that onwebkit you are welcome.
-Send me a ping.
-</td>
+If you need very fast vector support, try to enable css3dvector. It should work on webkit browsers(iphone, chrome, safari,...).
+But it's buggy.
+
 <h4>Browser support</h4>
 Mouse wheel has different speed on different plattforms. <br/>
 No idea how to solve this problem.
@@ -389,11 +415,13 @@ No idea how to solve this problem.
 </tr><tr>
 <td>iPhone</td><td>see Webkit, excellent Moultitouch!!</td>
 </tr><tr>
-<td>Internet Explorer</td><td> Not tested. SVG will not work at all. VML would be an relative easy task. Drawing a path should be not more than 10 lines code. The line styles must be transformed to Microsoft syntax.  </td></tr>
+<td>Internet Explorer</td><td> 
+Should work, not well tested. Vector grahpics doesn't work. </td>
+</td></tr>
 </tr><tr>
-<td>Opera</td><td>3D CSS missing -> slow</td>
+<td>Opera</td><td>3D CSS missing -> slow; Opera 10.5 very fast</td>
 </tr><tr>
-<td>Konqueror</td><td>3D CSS missing -> slow</td>
+<td>Konqueror</td><td>Not supported</td>
 </tr>
 </table>
 
@@ -412,7 +440,7 @@ but there is this images load bug:
 <li>Mouse and touchscreen event handling</li>
 <li>Draw lines on the map </li>
 <li>Draw areas on the map </li>
-<li>Draw markers (partly implemented; API idea?)</li>
+<li>Draw markers </li>
 <li>Should provides a stable lowlevel API. If an other javascript geek want's to beet the speed, a simple API should enable the programmer to replace this API with a fster one.</li>
 </ul>
 
@@ -420,10 +448,8 @@ but there is this images load bug:
 <h4>ToDo</h4>
 <ul>
 <li>Make it faster</li>
-<li>More flexible marker system</li>
 <li>Enable cyclemap, OSMA Layer,...</li>
-<li>getBounds() has a mistake (getNE is stupid)</li>
-<li>doubleclick for zoom </li>
+<li>for more see: <a href="http://github.com/robotnic/khtmlib/issues">bugtracker</a></li>
 </ul>
 <h4>What will not be part of this lib</h4>
 This things can be made on top of this lib.
