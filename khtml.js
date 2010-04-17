@@ -942,7 +942,7 @@ function kmap(map){
 		if(this.wheelZoomTimeout){
 			clearTimeout(this.wheelZoomTimeout);
 		}
-		window.setTimeout(tempFunction,10);
+		window.setTimeout(tempFunction,20);
 
 
 	}
@@ -1501,7 +1501,7 @@ function kmap(map){
 		if(!this.css3d){
 			var that=this;
 			var func=function(){that.blocked=false;};
-			window.setTimeout(func,20);
+			window.setTimeout(func,10);
 		}
 	}
 
