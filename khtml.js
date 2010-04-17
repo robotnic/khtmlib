@@ -751,6 +751,7 @@ function kmap(map){
 		}
 		//this.mousedownTime2=0; //if it's moved it's not a doubleclick
 		if(this.distanceMeasuring){
+			if(!this.internetExplorer){
 			if(this.moveMarker){
 				//this.normalize();
 				var movePoint=this.XYTolatlng(-this.mapLeft + this.pageX(evt),this.mapTop+this.height - this.pageY(evt));
@@ -790,6 +791,7 @@ function kmap(map){
 				var that=this;
 				this.measureLine.render(that);
 				return;
+			}
 			}
 		}
 		if(evt.shiftKey){
