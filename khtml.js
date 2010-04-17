@@ -1501,7 +1501,7 @@ function kmap(map){
 		if(!this.css3d){
 			var that=this;
 			var func=function(){that.blocked=false;};
-			window.setTimeout(func,10);
+			window.setTimeout(func,20);
 		}
 	}
 
