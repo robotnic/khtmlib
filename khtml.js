@@ -703,9 +703,18 @@ function kmap(map){
 		if(this.distanceMeasuring=="yes"){
 			//this.normalize();
 			this.distanceStartpoint=this.XYTolatlng(this.moveX -this.mapLeft + this.pageX(evt),this.moveY+this.mapTop+this.height - this.pageY(evt));
-			var marker=new kMarker(this.distanceStartpoint,"green");
+			var img=document.createElement("img");
+			img.setAttribute("src","images/dot_green.png");
+			img.style.position="absolute";
+			img.style.top="-3px";    //<---  flag
+			img.style.left="-4px";    //<---  flag
+			img.style.width="8px";    //<---  flag
+			img.style.height="8px";
+
+			var marker=new kMarker(this.distanceStartpoint,img);
 			this.addOverlay(marker);
-			this.moveMarker=new kMarker(this.distanceStartpoint,"green");
+			var img2=img.cloneNode(img);
+			this.moveMarker=new kMarker(this.distanceStartpoint,img2);
 		
 			var points=new Array();
 			var style=new kStyle();
