@@ -43,43 +43,38 @@ function kStyle(){
 // There should be a possibility to add orbitrary html as marker
 //
 
-function kMarker(point,color){
-	var img=document.createElement("img");
-	var div=document.createElement("div");
-	img.setAttribute("src","images/dot_"+color+".png");
-	img.style.position="absolute";
-	img.style.top="-3px";    //<---  flag
-	img.style.left="-4px";    //<---  flag
-	img.style.width="8px";    //<---  flag
-	img.style.height="8px";    //<---  flag
-	div.appendChild(img);
-	div.style.position="absolute";
-	div.style.top="0px";
-	div.style.left="0px";
-	this.marker=div;
-	this.point=point;
-		
-	this.init=function(mapObj){
-		mapObj.overlayDiv.appendChild(this.marker);
-		this.render(mapObj);
-	}
-	this.render=function(mapObj){
-		var xy=mapObj.latlngToXY(this.point);	
-		if(xy["x"] < 40 || xy["y"] < 40) {    // <---- flag  ; workaround for overflow:hidden bug
-			this.marker.style.display="none";
-		}else{
-			this.marker.style.display="";
-			this.marker.style.left=xy["x"]+"px";
-			this.marker.style.top=xy["y"]+"px";
-		}
-	}
-	this.destroy=function(){
-		this.marker.parentNode.removeChild(this.marker);
-	}
-	this.moveTo=function(point){
-		this.point=point;
-	}
+function kMarker(point,el){
+        var div=document.createElement("div");
+        div.appendChild(el);
+        div.style.position="absolute";
+        div.style.top="0px";
+        div.style.left="0px";
+        this.marker=div;
+        this.point=point;
+
+        this.init=function(mapObj){
+                mapObj.overlayDiv.appendChild(this.marker);
+                this.render(mapObj);
+        }
+        this.render=function(mapObj){
+                var xy=mapObj.latlngToXY(this.point);
+                if(xy["x"] < 40 || xy["y"] < 40) {    // <---- flag  ; workaround for overflow:hidden bug
+                        this.marker.style.display="none";
+                }else{
+                        this.marker.style.display="";
+                        this.marker.style.left=xy["x"]+"px";
+                        this.marker.style.top=xy["y"]+"px";
+                }
+        }
+        this.destroy=function(){
+                this.marker.parentNode.removeChild(this.marker);
+        }
+        this.moveTo=function(point){
+                this.point=point;
+        }
 }
+
+
 
 //
 //  maybe this can be removed
@@ -1298,8 +1293,6 @@ function kmap(map){
 			this.animatedGotoStep++;
 
 			this.setCenter2(new kPoint(lat,lng),zoom);
-			var tc=document.getElementById("debug").textContent;
-			document.getElementById("debug").textContent="lat: "+lat+" lng: "+lng+" zoom: "+zoom;
 
 	}
 
