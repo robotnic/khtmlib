@@ -657,7 +657,7 @@ function kmap(map){
 		}
 		return px;
 		}catch(e){
-			return this.width/2;
+			return this.width/2 + this.mapLeft;
 		}
 	}
 	this.pageY=function(evt){
@@ -665,7 +665,7 @@ function kmap(map){
 		if (evt.pageY === undefined) {
 			var py= evt.clientY + document.documentElement.scrollTop;
 		}else{
-			var py= evt.pageY;
+			var py= evt.pageY + this.mapTop;
 		}
 		return py;
 		}catch(e){
@@ -731,17 +731,16 @@ function kmap(map){
 			this.selectRectLeft= this.pageX(evt) - this.mapLeft;
 			this.selectRectTop= this.pageY(evt) - this.mapTop;
 
-
-
 	//		this.distanceStartpoint=this.XYTolatlng(-this.mapLeft + this.pageX(evt),this.mapTop+this.height - this.pageY(evt));
-
 			this.selectRect=document.createElement("div");
 			this.selectRect.style.left=this.selectRectLeft+"px";
 			this.selectRect.style.top=this.selectRectTop+"px";
-			this.selectRect.style.border="1px solid grey";
-			this.selectRect.style.opacity=0.5;
+			this.selectRect.style.border="1px solid gray";
+			if(!this.internetExplorer){
+				this.selectRect.style.opacity=0.5;
+				this.selectRect.style.backgroundColor="white";
+			}
 			this.selectRect.style.position="absolute";
-			this.selectRect.style.backgroundColor="white";
 			this.map.parentNode.appendChild(this.selectRect);	
 		}else{
 			this.hideOverlays();
@@ -854,12 +853,13 @@ function kmap(map){
 		//using this normalize some things are working better, others not so goot. 
 		//delelte it will solve some problems but bring other problems
 		//this.normalize();
-		if(this.moveAnimationDesktop){
-
-			if(this.moveAnimationBlocked==false){
-				var speedX=this.lastMoveX - this.moveX;
-				var speedY=this.lastMoveY - this.moveY;
-				this.animateMove(speedX,speedY);	
+		if(this.wheelSpeedConfig["moveAnimateDesktop"]){
+			if(this.movestarted){
+				if(this.moveAnimationBlocked==false){
+					var speedX=this.lastMoveX - this.moveX;
+					var speedY=this.lastMoveY - this.moveY;
+					this.animateMove(speedX,speedY);	
+				}
 			}
 		}
 		this.movestarted=false;
@@ -917,8 +917,9 @@ function kmap(map){
 		if (navigator.userAgent.match("Safari") ){
 			delta = evt.wheelDelta/150;
 		}
-		
-		var dzoom=delta* this.zoomWheelSpeed;
+		var dzoom=delta* this.wheelSpeedConfig["acceleration"]*0.03;
+//		alert( dzoom+":"+delta+":"+ this.wheelSpeedConfig["acceleration"]);
+
 		//document.getElementById("debug").textContent="zoom: "+this.zoom+" dzoom: "+dzoom+" zoomAccelerate: "+this.zoomAccelerate;
 
 		if(dzoom > 0 && this.zoomAccelerate < 0) this.zoomAccelerate=0;
@@ -931,6 +932,7 @@ function kmap(map){
 			this.zoomAccelerate=0;
 		}
 	
+		//document.getElementById("debug").textContent=dzoom+":"+this.zoomAccelerate+":"+this.zoom;
 		if(this.zoom < 1){
 			this.zoom=1;
 			dzoom=0;
@@ -949,30 +951,31 @@ function kmap(map){
 
 	this.wheelZoomTimeout=null;
         this.zooming=function(pageX,pageY){
-		/*
-                if(this.zoomAccelerate >0){
-                        this.zoomAccelerate=this.zoomAccelerate -0.01;
-                }else{
-                        this.zoomAccelerate=this.zoomAccelerate +0.01;
-                }
-		*/
-		this.zoomAccelerate=this.zoomAccelerate *0.7;
-                if(Math.abs(this.zoomAccelerate ) > 0.01){	
-			var that=this;
-			var tempFunction=function () {that.zooming(pageX,pageY)};
+		var ttt=this.zoomAccelerate;
+		//document.getElementById("debug").textContent=this.zoomAccelerate+":"+this.zoom;
+		
+		//this.zoomAccelerate=this.zoomAccelerate *0.7;
+		if(this.wheelZoomTimeout){
 			clearTimeout(this.wheelZoomTimeout);
-			this.wheelZoomTimeout=window.setTimeout(tempFunction,10);
-			/*
-			if(this.wheelZoomTimeout){
-				clearTimeout(this.wheelZoomTimeout);
+		}
+                if(Math.abs(this.zoomAccelerate ) > this.wheelSpeedConfig["zoomAnimationSlowdown"]){	
+			if(this.wheelSpeedConfig["animate"]){
+				var that=this;
+				var tempFunction=function () {that.zooming(pageX,pageY)};
+				var time=1/this.wheelSpeedConfig["animationFPS"] * 1000;
+				this.wheelZoomTimeout=window.setTimeout(tempFunction,time);
+			}else{
+				//alert("gut");
 			}
-			*/
                 }else{
+			var tt=this.zoomAccelerate;
 			this.zoomAccelerate=0;
 		}
-		if(this.zoomAccelerate > this.zoomWheelMaxSpeed) this.zoomAccelerate=this.zoomWheelMaxSpeed;
-		if(this.zoomAccelerate < -this.zoomWheelMaxSpeed) this.zoomAccelerate=-this.zoomWheelMaxSpeed;
-                this.zoom=this.zoom+this.zoomAccelerate; 
+		
+		if(this.zoomAccelerate > this.wheelSpeedConfig["maxSpeed"]/10) this.zoomAccelerate=this.wheelSpeedConfig["maxSpeed"]/10;
+		if(this.zoomAccelerate < -this.wheelSpeedConfig["maxSpeed"]/10) this.zoomAccelerate=-this.wheelSpeedConfig["maxSpeed"]/10;
+                this.zoom=this.zoom+this.zoomAccelerate ;// * this.wheelSpeedConfig["speed"]; 
+		//document.getElementById("debug").textContent=this.zoomAccelerate+":"+this.zoom+":"+tt+":"+ttt;
 		var moveable=true;
                 if(this.zoom < 1){
 			this.zoom=1;
@@ -982,6 +985,7 @@ function kmap(map){
 			this.zoom=18;
 			moveable=false;
 		}
+		//document.getElementById("debug").textContent=this.zoomAccelerate+":"+this.zoom;
 
 		faktor=Math.pow(2,this.zoom);   
 		var zoomCenterDeltaX=(pageX -this.mapLeft)   -this.width/2;
@@ -1002,6 +1006,14 @@ function kmap(map){
 		//console.log(this.zoom);
                 this.setCenter2(this.center,this.zoom);
 		this.renderOverlays();
+
+                if(this.zoomAccelerate >0){
+                        this.zoomAccelerate=this.zoomAccelerate -this.wheelSpeedConfig["zoomAnimationSlowdown"];
+                }
+                if(this.zoomAccelerate <0){
+                        this.zoomAccelerate=this.zoomAccelerate +this.wheelSpeedConfig["zoomAnimationSlowdown"];
+                }
+
         }
 
 	//
@@ -1009,12 +1021,13 @@ function kmap(map){
 	//
 
 	this.animateMove=function(speedX,speedY){
+		clearTimeout(this.animateMoveTimeout);
 		if(Math.abs(speedX) <=0.00001 && Math.abs(speedY) <=0.00001)return;
 		this.moveX=-speedX +this.moveX;
 		this.moveY=-speedY +this.moveY;
 
 		var that=this;
-                var tempFunction=function () {that.animateMove(speedX*0.9 , speedY*0.9 )};
+                var tempFunction=function () {that.animateMove(speedX*that.wheelSpeedConfig["moveAnimationSlowdown"] , speedY*that.wheelSpeedConfig["moveAnimationSlowdown"] )};
                 this.animateMoveTimeout=window.setTimeout(tempFunction,20);
                 this.setCenter2(this.center,this.zoom);
 		//document.getElementById("debug").textContent=speedX+":"+speedY+":"+animcount;
@@ -1236,7 +1249,11 @@ function kmap(map){
 			zoom=1;
 		}
 		if(this.center){
-			this.animatedGoto(center,zoom,500);
+			if(this.wheelSpeedConfig["rectShiftAnimate"]){
+				this.animatedGoto(center,zoom,this.wheelSpeedConfig["rectShiftAnimationTime"]);
+			}else{
+				this.setCenter2(center,zoom);
+			}
 		}else{	
 			this.setCenter2(center,zoom);
 		}
@@ -1993,8 +2010,18 @@ function kmap(map){
 		//alert("Sorry, Internet Explorer does not support this map, please use a good Browser like chrome, safari, opera.");
         }
 	this.maxIntZoom=18;
-	this.zoomWheelSpeed=0.1;
-	this.zoomWheelMaxSpeed=0.3;
+
+	this.wheelSpeedConfig=new Array();
+	this.wheelSpeedConfig["acceleration"]=1;
+	this.wheelSpeedConfig["maxSpeed"]=1;
+	this.wheelSpeedConfig["animate"]=true;
+	this.wheelSpeedConfig["zoomAnimationSlowdown"]=0.01;
+	this.wheelSpeedConfig["animationFPS"]=50;
+	this.wheelSpeedConfig["moveAnimateDesktop"]=true;
+	this.wheelSpeedConfig["moveAnimationSlowdown"]=0.9;
+	this.wheelSpeedConfig["rectShiftAnimate"]=true;
+	this.wheelSpeedConfig["rectShiftAnimationTime"]=1500;
+
         this.mapParent=map;
 	mapInit=map;
 	
