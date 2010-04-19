@@ -665,7 +665,7 @@ function kmap(map){
 		if (evt.pageY === undefined) {
 			var py= evt.clientY + document.documentElement.scrollTop;
 		}else{
-			var py= evt.pageY + this.mapTop;
+			var py= evt.pageY;
 		}
 		return py;
 		}catch(e){
