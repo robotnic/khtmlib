@@ -1803,7 +1803,9 @@ function kmap(map){
 
                 for(var vimg in this.layers[intZoom]["images"]){
 			if(this.layers[intZoom]["images"][vimg]["visibility"]){
-				this.layers[intZoom]["images"][vimg]["img"].style.visibility="";
+				if(this.layers[intZoom]["images"][vimg]["img"].getAttribute("loaded")=="yes"){
+					this.layers[intZoom]["images"][vimg]["img"].style.visibility="";
+				}
 			}else{
 				this.layers[intZoom]["images"][vimg]["img"].style.visibility="hidden";
 				//delete img if not loaded and not needed at the moment
