@@ -1057,15 +1057,19 @@ function kmap(map){
 	//  zoom in animation
 	//
 
+	this.autoZoomInTimeout=null;
 	this.autoZoomIn=function(x,y,z){
-		var stepwidth=0.025;
+		if(this.autoZoomInTimeout){
+			window.clearTimeout(this.autoZoomInTimeout);
+		}
+		var stepwidth=0.1;
 		if(z < 0){
 			//alert(this.getZoom());
 			this.renderOverlays();
 			return;
 		}
 		zoomGap=false;
-		if(z < stepwidth){
+		if(z <= stepwidth){
 			zoomGap=true;
 		}
 		this.hideOverlays();
@@ -1095,7 +1099,7 @@ function kmap(map){
 		var that=this;
 		if(!zoomGap){
 		var tempFunction=function () {that.autoZoomIn(x,y,newz)};
-		window.setTimeout(tempFunction,5);
+			this.autoZoomInTimeout=window.setTimeout(tempFunction,50);
 		}
 		
 	}
