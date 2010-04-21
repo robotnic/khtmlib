@@ -902,6 +902,10 @@ function kmap(map){
 			evt.returnValue = false; // The IE way
 		}
 
+		this.wheelEventCounter++;
+		var that=this;
+		var tempFunction=function () {that.wheelEventCounter--};
+		window.setTimeout(tempFunction,1000);
 		
 		if (!evt) /* For IE. */
 			evt = window.event;
@@ -958,7 +962,7 @@ function kmap(map){
 		if(this.wheelZoomTimeout){
 			clearTimeout(this.wheelZoomTimeout);
 		}
-                if(Math.abs(this.zoomAccelerate ) > this.wheelSpeedConfig["zoomAnimationSlowdown"]){	
+                if(Math.abs(this.zoomAccelerate ) > this.wheelSpeedConfig["zoomAnimationSlowdown"]*2){	
 			if(this.wheelSpeedConfig["animate"]){
 				var that=this;
 				var tempFunction=function () {that.zooming(pageX,pageY)};
@@ -1543,6 +1547,11 @@ function kmap(map){
 	===================================================================================*/
 
 	this.draw=function(map,lat,lng, moveX, moveY, intZoom,zoom){
+		this.framesCounter++;
+		var that=this;
+		var tempFunction=function () {that.framesCounter--};
+		window.setTimeout(tempFunction,1000);
+		
 		//console.log("draw");
 		var faktor=Math.pow(2,intZoom);
 
@@ -2012,15 +2021,24 @@ function kmap(map){
 	this.maxIntZoom=18;
 
 	this.wheelSpeedConfig=new Array();
-	this.wheelSpeedConfig["acceleration"]=1;
-	this.wheelSpeedConfig["maxSpeed"]=1;
-	this.wheelSpeedConfig["animate"]=true;
-	this.wheelSpeedConfig["zoomAnimationSlowdown"]=0.01;
+	this.wheelSpeedConfig["acceleration"]=2;
+	this.wheelSpeedConfig["maxSpeed"]=2;
+//	alert(navigator.userAgent);
+        if(navigator.userAgent.indexOf("AppleWebKit")!=-1){
+		this.wheelSpeedConfig["animate"]=true;
+	}else{
+		this.wheelSpeedConfig["animate"]=false;
+	}
+	this.wheelSpeedConfig["zoomAnimationSlowdown"]=0.02;
 	this.wheelSpeedConfig["animationFPS"]=50;
 	this.wheelSpeedConfig["moveAnimateDesktop"]=true;
-	this.wheelSpeedConfig["moveAnimationSlowdown"]=0.9;
+	this.wheelSpeedConfig["moveAnimationSlowdown"]=0.7;
 	this.wheelSpeedConfig["rectShiftAnimate"]=true;
 	this.wheelSpeedConfig["rectShiftAnimationTime"]=1500;
+
+	//variables for performance check
+	this.wheelEventCounter=0;
+	this.framesCounter=0;
 
         this.mapParent=map;
 	mapInit=map;
