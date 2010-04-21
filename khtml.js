@@ -696,8 +696,9 @@ function kmap(map){
 	}
 
 	this.doubleclick=function(evt){
+		//console.log("doubleclick");
 		var zoom=this.getZoom();
-		var zoomD=Math.ceil(0.01+this.getZoom())-zoom;
+		var zoomD=Math.ceil(0.0001+this.getZoom())-zoom;
 		this.autoZoomIn(this.pageX(evt) -this.mapLeft,this.pageY(evt) -this.mapTop,zoomD);
 	}
 
@@ -712,11 +713,6 @@ function kmap(map){
 		if(this.mousedownTime2!=null){
 			var now=(new Date()).getTime();
 			if(now - this.mousedownTime2 < this.doubleclickTime2){
-				/*
-				var zoom=this.getZoom();
-				var zoomD=Math.ceil(0.01+this.getZoom())-zoom;
-				this.autoZoomIn(this.pageX(evt) -this.mapLeft,this.pageY(evt) -this.mapTop,zoomD);
-				*/
 				this.doubleclick(evt);
 			}
 		}
@@ -1059,6 +1055,7 @@ function kmap(map){
 
 	this.autoZoomInTimeout=null;
 	this.autoZoomIn=function(x,y,z){
+		//console.log(z);
 		if(this.autoZoomInTimeout){
 			window.clearTimeout(this.autoZoomInTimeout);
 		}
@@ -1078,6 +1075,7 @@ function kmap(map){
 		if(zoomGap){
 			zoom=Math.round(zoom);
 			dzoom=z;
+			//console.log("gap: "+dzoom+" : "+zoom);
 		}
 
 		faktor=Math.pow(2,zoom);
@@ -1094,15 +1092,16 @@ function kmap(map){
 
 		var center=new kPoint(this.lat,this.lng);
 		if(zoom > 18) zoom=18;
+		zoom=Math.round(zoom*1000)/1000;
 		this.setCenter2(center,zoom);
 		var newz=z - dzoom;
 		var that=this;
 		if(!zoomGap){
-		var tempFunction=function () {that.autoZoomIn(x,y,newz)};
+			var tempFunction=function () {that.autoZoomIn(x,y,newz)};
 			this.autoZoomInTimeout=window.setTimeout(tempFunction,50);
 		}
 		
-	}
+	}	
 
 	//
 	//  zoom out animation
