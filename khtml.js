@@ -363,7 +363,27 @@ function kBounds(sw,ne){
 
 
 	this.getDistance=function(){
-			return distance(this.sw.getLat(),this.sw.getLng(),this.ne.getLat(),this.ne.getLng());
+		return distance(this.sw.getLat(),this.sw.getLng(),this.ne.getLat(),this.ne.getLng());
+	}
+	this.getDistanceText=function(){
+		var d= parseFloat(distance(this.sw.getLat(),this.sw.getLng(),this.ne.getLat(),this.ne.getLng()));
+			
+		if(d < 1000){
+			return Math.round(d)+"m";
+		}
+	
+		if(d < 10000){
+			var km=Math.round(d/10)/100;
+			return km+"km";
+		}
+		if(d < 100000){
+			var km=Math.round(d/100)/10;
+			return km+"km";
+		}
+		var km=Math.round(d/1000);
+		return km +"km";
+
+
 	}
 
 	this.getInnerRadius=function(){
@@ -392,6 +412,8 @@ function kBounds(sw,ne){
 		return d;  //in meter
 
 	}
+
+		
 
 }
 
@@ -776,8 +798,8 @@ function kmap(map){
 				}
 				this.measureLine.setPoints(points);
 				var mbr=new kBounds(movePoint,this.distanceStartpoint);
-				var d=Math.round(mbr.getDistance());
-				var dkm=d / 1000;
+				var d=mbr.getDistanceText();
+				
 				var style2=new kStyle();
 				style2.addStyle("fill","black");
 				style2.addStyle("stroke","white");
@@ -786,7 +808,7 @@ function kmap(map){
 				style2.addStyle("font-weight","bold");
 				style2.addStyle("text-anchor","middle");
 				style2.addStyle("dy","-2");
-				this.measureLine.setText(dkm+" km",style2);
+				this.measureLine.setText(d,style2);
 				var that=this;
 				this.measureLine.render(that);
 				return;
