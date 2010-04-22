@@ -1223,7 +1223,7 @@ function kmap(map){
 	//
 
 	this.setBounds=function(b){
-		this.normalize();
+		//this.normalize();
 		//the setbounds should be a mathematical formula and not guessing around.
 		//if you know this formula pease add it here.
 		//this.getSize();
@@ -1270,7 +1270,7 @@ function kmap(map){
 		}
 		if(this.center){
 			if(this.wheelSpeedConfig["rectShiftAnimate"]){
-				this.animatedGoto(center,zoom,this.wheelSpeedConfig["rectShiftAnimationTime"]);
+				this.animatedGoto(center,zoom,this.wheelSpeedConfig["rectShiftAnimationTime"],this.moveX,this.moveY);
 			}else{
 				this.setCenter2(center,zoom);
 			}
@@ -1281,7 +1281,7 @@ function kmap(map){
 	}
 
 	this.animatedGotoStep=null;
-	this.animatedGoto=function(newCenter,newZoom,time){
+	this.animatedGoto=function(newCenter,newZoom,time,moveX,moveY){
 		var zoomSteps=time /10;
 		var oldCenter=this.getCenter();
 		var newLat=newCenter.getLat();
@@ -1292,6 +1292,10 @@ function kmap(map){
 		var dLat=(newLat - oldLat)/zoomSteps;
 		var dLng=(newLng - oldLng)/zoomSteps;
 		var dZoom=(newZoom - oldZoom)/zoomSteps;
+		var dMoveX=this.moveX/zoomSteps;
+		var dMoveY=this.moveY/zoomSteps;
+		var oldMoveX=this.moveX;
+		var oldMoveY=this.moveY;
 		this.animatedGotoStep=0;
 		var that=this;
 		for(var i=0; i < zoomSteps; i++){		
@@ -1300,20 +1304,22 @@ function kmap(map){
 			var zoom= oldZoom+dZoom*i;
 			//document.getElementById("debug").textContent="lat: "+lat+" lng: "+lng+" zoom: "+zoom;
 
-			var tempFunction=function(){ that.animatedGotoExec(oldLat,oldLng,oldZoom,dLat,dLng,dZoom)}
+			var tempFunction=function(){ that.animatedGotoExec(oldLat,oldLng,oldZoom,dLat,dLng,dZoom,oldMoveX,oldMoveY,dMoveX,dMoveY)}
 			window.setTimeout(tempFunction,10*i);
 		}
 		var tempFunction=function(){ that.setCenter2(new kPoint(newLat,newLng),newZoom);}
 		window.setTimeout(tempFunction,time+200);
 
 	}
-	this.animatedGotoExec=function(oldLat,oldLng,oldZoom,dLat,dLng,dZoom){
+	this.animatedGotoExec=function(oldLat,oldLng,oldZoom,dLat,dLng,dZoom,oldMoveX,oldMoveY,dMoveX,dMoveY){
+			this.moveX=-dMoveX;
+			this.moveY=-dMoveY;
 			var lat=oldLat+dLat*this.animatedGotoStep;
                         var lng=oldLng+dLng*this.animatedGotoStep;
                         var zoom=oldZoom+dZoom*this.animatedGotoStep;
 			this.animatedGotoStep++;
 
-			this.setCenter2(new kPoint(lat,lng),zoom);
+			this.setCenter(new kPoint(lat,lng),zoom);
 
 	}
 
