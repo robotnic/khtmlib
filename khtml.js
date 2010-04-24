@@ -673,25 +673,27 @@ function kmap(map){
 	this.pageX=function(evt){
 		try{
 		if (evt.pageX === undefined) {
-			var px= evt.clientX + document.documentElement.scrollLeft;
+			var px= evt.clientX + document.body.scrollLeft;
 		}else{
 			var px= evt.pageX;
 		}
 		return px;
 		}catch(e){
-			return this.width/2 + this.mapLeft;
+			return this.lastMouseX;
+			//return this.width/2 + this.mapLeft;
 		}
 	}
 	this.pageY=function(evt){
 		try{
 		if (evt.pageY === undefined) {
-			var py= evt.clientY + document.documentElement.scrollTop;
+			var py= evt.clientY + document.body.scrollTop;
 		}else{
 			var py= evt.pageY;
 		}
 		return py;
 		}catch(e){
-			return this.height/2;
+			return this.lastMouseY;
+			//return this.height/2  +this.mapTop;
 		}
 	}
 
@@ -703,12 +705,15 @@ function kmap(map){
 	}
 
 	this.mousedown=function(evt){
+		this.mapParent.focus();
 		if(evt.preventDefault){
 			evt.preventDefault(); // The W3C DOM way
 		} else {
 			window.event.returnValue = false; // The IE way
 		}
 
+		this.lastMouseX=this.pageX(evt);
+		this.lastMouseY=this.pageY(evt);
 		this.moveAnimationBlocked=true;
 		if(this.mousedownTime2!=null){
 			var now=(new Date()).getTime();
@@ -776,6 +781,8 @@ function kmap(map){
 			window.event.returnValue = false; // The IE way
 		}
 		//this.mousedownTime2=0; //if it's moved it's not a doubleclick
+		this.lastMouseX=this.pageX(evt);
+		this.lastMouseY=this.pageY(evt);
 		if(this.distanceMeasuring){
 			if(!this.internetExplorer){
 			if(this.moveMarker){
@@ -801,7 +808,11 @@ function kmap(map){
 				style2.addStyle("stroke","white");
 				style2.addStyle("stroke-width",0.5);
 				style2.addStyle("font-size","18px");
-				style2.addStyle("font-weight","bold");
+				if(navigator.userAgent.indexOf("Opera")!=-1){
+					style2.addStyle("font-size","15px");
+				}else{
+					style2.addStyle("font-weight","bold");
+				}
 				style2.addStyle("text-anchor","middle");
 				style2.addStyle("dy","-2");
 				this.measureLine.setText(d,style2);
@@ -843,6 +854,8 @@ function kmap(map){
 		} else {
 			evt.returnValue = false; // The IE way
 		}
+		this.lastMouseX=this.pageX(evt);
+		this.lastMouseY=this.pageY(evt);
 		if(this.moveMarker){
 			this.moveMarker=null;
 		}
@@ -870,9 +883,10 @@ function kmap(map){
 					this.animateMove(speedX,speedY);	
 				}
 			}
+		}else{
+			this.renderOverlays();
 		}
 		this.movestarted=false;
-		this.renderOverlays();
 	}
 
 	//
@@ -905,6 +919,7 @@ function kmap(map){
 
 	this.zoomAccelerate=0;
 	this.mousewheel=function(evt){
+		this.mapParent.focus();
 		if(evt.preventDefault){
 			evt.preventDefault(); // The W3C DOM way
 		} else {
@@ -921,7 +936,7 @@ function kmap(map){
 		if (evt.wheelDelta) { /* IE/Opera. */
 			delta = evt.wheelDelta/60;
 			if (window.opera){
-				delta = delta/4;
+				delta = delta;
 			}
 		} else if (evt.detail) { /** Mozilla case. */
 			delta = -evt.detail/3;
@@ -1035,12 +1050,15 @@ function kmap(map){
 
 	this.animateMove=function(speedX,speedY){
 		clearTimeout(this.animateMoveTimeout);
-		if(Math.abs(speedX) <=0.00001 && Math.abs(speedY) <=0.00001)return;
+		if(Math.abs(speedX) <=0.00001 && Math.abs(speedY) <=0.00001){
+			this.renderOverlays();
+			return;
+		}
 		this.moveX=-speedX +this.moveX;
 		this.moveY=-speedY +this.moveY;
 
 		var that=this;
-                var tempFunction=function () {that.animateMove(speedX*that.wheelSpeedConfig["moveAnimationSlowdown"] , speedY*that.wheelSpeedConfig["moveAnimationSlowdown"] )};
+		var tempFunction=function () {that.animateMove(speedX*that.wheelSpeedConfig["moveAnimationSlowdown"] , speedY*that.wheelSpeedConfig["moveAnimationSlowdown"] ); }
                 this.animateMoveTimeout=window.setTimeout(tempFunction,20);
                 this.setCenter2(this.center,this.zoom);
 		//document.getElementById("debug").textContent=speedX+":"+speedY+":"+animcount;
@@ -1099,6 +1117,8 @@ function kmap(map){
 		if(!zoomGap){
 			var tempFunction=function () {that.autoZoomIn(x,y,newz)};
 			this.autoZoomInTimeout=window.setTimeout(tempFunction,50);
+		}else{
+			this.renderOverlays();
 		}
 		
 	}	
@@ -1270,7 +1290,7 @@ function kmap(map){
 		}
 		if(this.center){
 			if(this.wheelSpeedConfig["rectShiftAnimate"]){
-				this.animatedGoto(center,zoom,this.wheelSpeedConfig["rectShiftAnimationTime"],this.moveX,this.moveY);
+				this.animatedGoto(center,zoom,this.wheelSpeedConfig["rectShiftAnimationTime"]);
 			}else{
 				this.setCenter2(center,zoom);
 			}
@@ -1281,7 +1301,8 @@ function kmap(map){
 	}
 
 	this.animatedGotoStep=null;
-	this.animatedGoto=function(newCenter,newZoom,time,moveX,moveY){
+	this.animatedGoto=function(newCenter,newZoom,time){
+		this.hideOverlays();
 		var zoomSteps=time /10;
 		var oldCenter=this.getCenter();
 		var newLat=newCenter.getLat();
@@ -1307,7 +1328,7 @@ function kmap(map){
 			var tempFunction=function(){ that.animatedGotoExec(oldLat,oldLng,oldZoom,dLat,dLng,dZoom,oldMoveX,oldMoveY,dMoveX,dMoveY)}
 			window.setTimeout(tempFunction,10*i);
 		}
-		var tempFunction=function(){ that.setCenter2(new kPoint(newLat,newLng),newZoom);}
+		var tempFunction=function(){ that.setCenter2(new kPoint(newLat,newLng),newZoom);that.renderOverlays()}
 		window.setTimeout(tempFunction,time+200);
 
 	}
@@ -2048,10 +2069,12 @@ function kmap(map){
 	this.wheelSpeedConfig["acceleration"]=2;
 	this.wheelSpeedConfig["maxSpeed"]=2;
 //	alert(navigator.userAgent);
+	this.wheelSpeedConfig["animate"]=false;
         if(navigator.userAgent.indexOf("AppleWebKit")!=-1){
 		this.wheelSpeedConfig["animate"]=true;
-	}else{
-		this.wheelSpeedConfig["animate"]=false;
+	}
+        if(navigator.userAgent.indexOf("Opera")!=-1){
+		this.wheelSpeedConfig["animate"]=true;
 	}
 	this.wheelSpeedConfig["zoomAnimationSlowdown"]=0.02;
 	this.wheelSpeedConfig["animationFPS"]=50;
@@ -2103,6 +2126,9 @@ function kmap(map){
         this.map.style.position="absolute";
         map.appendChild(this.map);
         this.getSize();
+
+	this.lastMouseX=this.width/2;
+	this.lastMouseY=this.height/2;
 
         this.overlayDiv=document.createElement("div");
         this.overlayDiv.style.width="100%";
