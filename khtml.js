@@ -961,10 +961,7 @@ function kmap(map){
 		}
 	
 		//document.getElementById("debug").textContent=dzoom+":"+this.zoomAccelerate+":"+this.zoom;
-		if(this.zoom < 1){
-			this.zoom=1;
-			dzoom=0;
-		}
+
 
 		var that=this;
 		clearTimeout(this.wheelZoomTimeout);
@@ -1002,45 +999,42 @@ function kmap(map){
 		
 		if(this.zoomAccelerate > this.wheelSpeedConfig["maxSpeed"]/10) this.zoomAccelerate=this.wheelSpeedConfig["maxSpeed"]/10;
 		if(this.zoomAccelerate < -this.wheelSpeedConfig["maxSpeed"]/10) this.zoomAccelerate=-this.wheelSpeedConfig["maxSpeed"]/10;
+		var oldzoom=this.zoom;
                 this.zoom=this.zoom+this.zoomAccelerate ;// * this.wheelSpeedConfig["speed"]; 
 		//document.getElementById("debug").textContent=this.zoomAccelerate+":"+this.zoom+":"+tt+":"+ttt;
-		var moveable=true;
-                if(this.zoom < 1){
+		
+                if(this.zoom <= 1){
 			this.zoom=1;
-			moveable=false;
 		}
-                if(this.zoom > 18){
+                if(this.zoom >= 18){
 			this.zoom=18;
-			moveable=false;
 		}
 		//document.getElementById("debug").textContent=this.zoomAccelerate+":"+this.zoom;
 
 		faktor=Math.pow(2,this.zoom);   
 		var zoomCenterDeltaX=(pageX -this.mapLeft)   -this.width/2;
 		var zoomCenterDeltaY=(pageY -this.mapTop)  -this.height/2;
-		var dzoom=this.zoomAccelerate;
+		
+		var dzoom=this.zoom- oldzoom;
 		var f=Math.pow(2,dzoom );
 
 		var dx=zoomCenterDeltaX - zoomCenterDeltaX*f;
 		var dy=zoomCenterDeltaY - zoomCenterDeltaY*f;
-		//console.log("dzoom,dx,dy: "+dzoom+":"+dx+":"+dy);
+	
 
-		if(moveable){
 		this.moveX=this.moveX+dx /faktor;
 		this.moveY=this.moveY+dy /faktor;
+
+
+		if(this.zoomAccelerate >0){
+			this.zoomAccelerate=this.zoomAccelerate -this.wheelSpeedConfig["zoomAnimationSlowdown"];
 		}
-		//console.log("moveXY: "+this.moveX+":"+this.moveY);
-
-		//console.log(this.zoom);
-                this.setCenter2(this.center,this.zoom);
+		if(this.zoomAccelerate <0){
+			this.zoomAccelerate=this.zoomAccelerate +this.wheelSpeedConfig["zoomAnimationSlowdown"];
+		}
+		
+		this.setCenter2(this.center,this.zoom);
 		this.renderOverlays();
-
-                if(this.zoomAccelerate >0){
-                        this.zoomAccelerate=this.zoomAccelerate -this.wheelSpeedConfig["zoomAnimationSlowdown"];
-                }
-                if(this.zoomAccelerate <0){
-                        this.zoomAccelerate=this.zoomAccelerate +this.wheelSpeedConfig["zoomAnimationSlowdown"];
-                }
 
         }
 
