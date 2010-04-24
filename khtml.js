@@ -1726,9 +1726,11 @@ function kmap(map){
 
 			//The world is recursive. West of America is Asia.
                         var xx=xxx % faktor;
-                        var yy=yyy % faktor;
+                        //var yy=yyy % faktor;
+                        var yy=yyy;
                         if(xx < 0) xx=xx+faktor;  //modulo function gives negative value for negative numbers
-                        if(yy < 0) yy=yy+faktor;
+                        if(yy < 0) continue;
+                        if(yy >= faktor) continue;
 
 			//Calculate the tile server. Use of a,b,c should increase speed but should not influence cache.
 			var hashval=(xx + yy) %3;
