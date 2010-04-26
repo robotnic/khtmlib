@@ -655,12 +655,6 @@ function kmap(map){
 
 
 		}
-	/*
-		this.moveX=0;
-		this.moveY=0;
-		this.lat=this.movedLat;
-		this.lng=this.movedLng;
-	*/
 		this.renderOverlays();
 	}
 
@@ -677,7 +671,7 @@ function kmap(map){
 		}else{
 			var px= evt.pageX;
 		}
-		return px;
+		return px -this.mapLeft;
 		}catch(e){
 			return this.lastMouseX;
 			//return this.width/2 + this.mapLeft;
@@ -690,7 +684,7 @@ function kmap(map){
 		}else{
 			var py= evt.pageY;
 		}
-		return py;
+		return py -this.mapTop;
 		}catch(e){
 			return this.lastMouseY;
 			//return this.height/2  +this.mapTop;
@@ -701,7 +695,7 @@ function kmap(map){
 		//console.log("doubleclick");
 		var zoom=this.getZoom();
 		var zoomD=Math.ceil(0.0001+this.getZoom())-zoom;
-		this.autoZoomIn(this.pageX(evt) -this.mapLeft,this.pageY(evt) -this.mapTop,zoomD);
+		this.autoZoomIn(this.pageX(evt) ,this.pageY(evt) ,zoomD);
 	}
 
 	this.mousedown=function(evt){
@@ -725,7 +719,7 @@ function kmap(map){
 
 		if(this.distanceMeasuring=="yes"){
 			//this.normalize();
-			this.distanceStartpoint=this.XYTolatlng(this.moveX -this.mapLeft + this.pageX(evt),this.moveY+this.mapTop+this.height - this.pageY(evt));
+			this.distanceStartpoint=this.XYTolatlng(this.moveX  + this.pageX(evt),this.moveY+this.height - this.pageY(evt));
 			var img=document.createElement("img");
 			img.setAttribute("src","images/dot_green.png");
 			img.style.position="absolute";
@@ -751,10 +745,10 @@ function kmap(map){
 
 
 		if(evt.shiftKey){
-			this.selectRectLeft= this.pageX(evt) - this.mapLeft;
-			this.selectRectTop= this.pageY(evt) - this.mapTop;
+			this.selectRectLeft= this.pageX(evt) ;
+			this.selectRectTop= this.pageY(evt) ;
 
-	//		this.distanceStartpoint=this.XYTolatlng(-this.mapLeft + this.pageX(evt),this.mapTop+this.height - this.pageY(evt));
+	//		this.distanceStartpoint=this.XYTolatlng( this.pageX(evt),this.height - this.pageY(evt));
 			this.selectRect=document.createElement("div");
 			this.selectRect.style.left=this.selectRectLeft+"px";
 			this.selectRect.style.top=this.selectRectTop+"px";
@@ -767,8 +761,8 @@ function kmap(map){
 			this.map.parentNode.appendChild(this.selectRect);	
 		}else{
 			this.hideOverlays();
-			this.startMoveX=this.moveX - (this.pageX(evt) - this.mapLeft) /this.faktor /this.sc;
-			this.startMoveY=this.moveY - (this.pageY(evt) - this.mapTop)  /this.faktor/this.sc;
+			this.startMoveX=this.moveX - (this.pageX(evt) ) /this.faktor /this.sc;
+			this.startMoveY=this.moveY - (this.pageY(evt) )  /this.faktor/this.sc;
 			this.movestarted=true;
 		}
 		return false;
@@ -787,7 +781,7 @@ function kmap(map){
 			if(!this.internetExplorer){
 			if(this.moveMarker){
 				//this.normalize();
-				var movePoint=this.XYTolatlng(-this.mapLeft + this.pageX(evt),this.mapTop+this.height - this.pageY(evt));
+				var movePoint=this.XYTolatlng( this.pageX(evt),this.height - this.pageY(evt));
 				this.moveMarker.moveTo(movePoint);
 				this.addOverlay(this.moveMarker);
 				//add line
@@ -824,8 +818,8 @@ function kmap(map){
 		}
 		if(evt.shiftKey){
 			if(this.selectRect){
-				this.selectRect.style.width=Math.abs(this.pageX(evt) - this.mapLeft - this.selectRectLeft)+"px";
-				this.selectRect.style.height=Math.abs(this.pageY(evt) - this.mapTop - this.selectRectTop)+"px";
+				this.selectRect.style.width=Math.abs(this.pageX(evt) - this.selectRectLeft)+"px";
+				this.selectRect.style.height=Math.abs(this.pageY(evt)  - this.selectRectTop)+"px";
 				if(this.pageX(evt) < this.selectRectLeft){
 					this.selectRect.style.left=this.pageX(evt);	
 				}
@@ -837,8 +831,8 @@ function kmap(map){
 			if(this.movestarted){
 				this.lastMoveX=this.moveX;
 				this.lastMoveY=this.moveY;
-				this.moveX=(this.pageX(evt) - this.mapLeft) / this.faktor/this.sc + this.startMoveX;
-				this.moveY=(this.pageY(evt) - this.mapTop) / this.faktor/this.sc + this.startMoveY;
+				this.moveX=(this.pageX(evt) ) / this.faktor/this.sc + this.startMoveX;
+				this.moveY=(this.pageY(evt) ) / this.faktor/this.sc + this.startMoveY;
 				
 				var center=new kPoint(this.lat,this.lng);
 				//alert(evt.pageX);
@@ -893,6 +887,7 @@ function kmap(map){
 	// this function should draw the map and remove any moveX,moveY
 	// Maybe buggy
 	//
+	/*
 	this.normalize=function(){
 		//normalize after move speed trick
 		if(!isNaN(this.movedLat)){
@@ -901,13 +896,14 @@ function kmap(map){
 		var lng=this.movedLng;
 		var center=new kPoint(lat,lng);
 		var zoom=this.getZoom();
-		this.moveX=0;
-		this.moveY=0;
+		//this.moveX=0;
+		//this.moveY=0;
 		//this.setCenterNoLog(center,zoom);
 		//end normalize (maybe this.stop needs the same)
 		}
 		}
 	}
+	*/
 
 	//
 	//  mouse wheel zoom
@@ -1012,9 +1008,9 @@ function kmap(map){
 		//document.getElementById("debug").textContent=this.zoomAccelerate+":"+this.zoom;
 
 		faktor=Math.pow(2,this.zoom);   
-		var zoomCenterDeltaX=(pageX -this.mapLeft)   -this.width/2;
-		var zoomCenterDeltaY=(pageY -this.mapTop)  -this.height/2;
-		
+		var zoomCenterDeltaX=(pageX )   -this.width/2;
+		var zoomCenterDeltaY=(pageY )  -this.height/2;
+	
 		var dzoom=this.zoom- oldzoom;
 		var f=Math.pow(2,dzoom );
 
@@ -1145,19 +1141,19 @@ function kmap(map){
 	this.setCenter=function(center,zoom){
 		this.moveX=0;
 		this.moveY=0;
-		this.normalize();
 		this.record();
-		//this.executeCallbackFunctions();
+		this.setCenterNoLog(center,zoom);
+	}
+	this.setCenter3=function(center,zoom){
+		this.moveX=0;
+		this.moveY=0;
 		this.setCenterNoLog(center,zoom);
 	}
 
 	// same as setCenter but moveX,moveY are not reset (for internal use)
 
 	this.setCenter2=function(center,zoom){
-		//alert(zoom);
-		//document.getElementById("debug").textContent=this.moveX+":"+this.moveY;
 		this.record();
-		//this.executeCallbackFunctions();
 		this.setCenterNoLog(center,zoom);
 	}
 
@@ -1166,17 +1162,14 @@ function kmap(map){
 	// same as setCenter but no history item is generated (for undo, redo)
 	//
 	this.setCenterNoLog=function(center,zoom){
-		/*
-		this.moveX=0;
-		this.moveY=0;
-		*/
+		this.center=center;		
+		this.lat=center.getLat();
+		this.lng=center.getLng();
+		
 		var zoom=parseFloat(zoom);
 		this.center=center;		
 		this.zoom=zoom;	
-		this.lat=center.getLat();
-		this.lng=center.getLng();
 
-//		alert(this.lat+":"+this.lng+":"+this.moveX+":"+this.moveY+":"+zoom);
 		this.layer(this.map,this.lat,this.lng,this.moveX,this.moveY,zoom);
 		this.executeCallbackFunctions();
 	}
@@ -1255,9 +1248,11 @@ function kmap(map){
 		var centerLat360=(minlat360 + maxlat360)/2;
 		var centerLat=y2lat(centerLat360);
 		var center=new kPoint(centerLat,centerLng);
-		var extendX=Math.abs(maxlat360 - minlat360);
-		var extendY=Math.abs(maxlng - minlng);
-		if(extendX / this.width < extendY / this.height){
+		debugCenterLat=centerLat;
+		debugCenterLng=centerLng;
+		var extendY=Math.abs(maxlat360 - minlat360);
+		var extendX=Math.abs(maxlng - minlng);
+		if(extendX / this.width > extendY / this.height){
 			var extend=extendX;
 			var screensize=this.width;	
 		}else{
@@ -1265,6 +1260,7 @@ function kmap(map){
 			var screensize=this.height;	
 		}
 		//alert(extend);
+			//alert(screensize+":"+extend+":"+extendX+":"+extendY);
 		//zoomlevel 1: 512 pixel
 		//zoomlevel 2: 1024 pixel
 		//...
@@ -1274,7 +1270,7 @@ function kmap(map){
 		//extend at zoomlevel1: extend/360 * 512px	
 		var scalarZoom=360/extend;
 		var screenfaktor= 512/screensize;
-                var zoom=(Math.log(scalarZoom / screenfaktor))/(Math.log(2)) ;
+                var zoom=(Math.log(scalarZoom / screenfaktor))/(Math.log(2)) +1;
 
 		if(zoom > 18){
 			zoom=18;
@@ -1286,10 +1282,10 @@ function kmap(map){
 			if(this.wheelSpeedConfig["rectShiftAnimate"]){
 				this.animatedGoto(center,zoom,this.wheelSpeedConfig["rectShiftAnimationTime"]);
 			}else{
-				this.setCenter2(center,zoom);
+				this.setCenter(center,zoom);
 			}
 		}else{	
-			this.setCenter2(center,zoom);
+			this.setCenter(center,zoom);
 		}
 
 	}
@@ -1502,7 +1498,7 @@ function kmap(map){
 		//undo,redo must not generate history items
 		this.moveX=0;
 		this.moveY=0;
-		this.setCenterNoLog(center,item[2]);
+		this.setCenter3(center,item[2]);
 	}
 
 
@@ -1598,7 +1594,7 @@ function kmap(map){
 			this.layers[intZoom]=new Array();
 			this.layers[intZoom]["startTileX"]=tile[0];
 			this.layers[intZoom]["startTileY"]=tile[1];
-			this.layers[intZoom]["startLat"]=lat;
+			this.layers[intZoom]["startLat"]=lat2y(lat);
 			this.layers[intZoom]["startLng"]=lng;
 			this.layers[intZoom]["images"]=new Object();
 			var layerDiv=document.createElement("div");
@@ -1643,8 +1639,11 @@ function kmap(map){
 		}else{
 			//The layer with this zoomlevel already exists. If there are new lat,lng value, the lat,lng Delta is calculated
 			var layerDiv=this.layers[intZoom]["layerDiv"];
-			var latDelta=lat-this.layers[intZoom]["startLat"];
+			var latDelta=lat2y(lat)-this.layers[intZoom]["startLat"];
 			var lngDelta=lng-this.layers[intZoom]["startLng"];
+			debugLatDelta=latDelta;
+			debugLngDelta=lngDelta;
+			debugStartLat=this.layers[intZoom]["startLat"];
 			//console.log(latDelta+":"+lngDelta);
 		}
 		layerDiv.style.visibility="hidden";
@@ -1652,8 +1651,8 @@ function kmap(map){
 		//if the map is moved with drag/drop, the moveX,moveY gives the movement in Pixel (not degree as lat/lng)
 		//here the real values of lat, lng are caculated
 		this.movedLng=(this.layers[intZoom]["startTileX"]/faktor - moveX/this.tileW )  *360 -180 +lngDelta;
-		var movedLat360=(this.layers[intZoom]["startTileY"]/faktor - moveY/this.tileH )  *360 -180 ;
-		this.movedLat= -y2lat(movedLat360) +latDelta;
+		var movedLat360=(this.layers[intZoom]["startTileY"]/faktor - moveY/this.tileH )  *360 -180 -latDelta;
+		this.movedLat= -y2lat(movedLat360);// -latDelta;  //the bug
 
 		//calculate real x,y
 		var tile=getTileNumber(this.movedLat,this.movedLng,intZoom);
