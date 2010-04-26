@@ -212,8 +212,6 @@ function kPolyline(points,style){
 		}
 		//console.log(d);
 		path.setAttribute("d",d);
-		//this.path.setAttribute("opacity",1);
-		//document.getElementById("debug").textContent=d; //this.points[point].getLat()+":"+xy["y"];
 		if(!mapObj.css3dvector){
 			svg.appendChild(path);
 		}else{
@@ -281,8 +279,6 @@ function kPolyline(points,style){
 		}
 	}
 	this.destroy=function(){
-		debug="";
-		//document.getElementById("debug").textContent=debug;
 		while(this.renderComplete.length >0){
 			this.renderComplete.pop();
 		}
@@ -591,7 +587,6 @@ function kmap(map){
 			}
 		}
 
-			//document.getElementById("debug").textContent=this.moveY;
 		if(evt.touches.length == 2){
 			this.mousedownTime=null;
 			var X1=evt.touches[0].pageX;
@@ -600,7 +595,6 @@ function kmap(map){
 			var Y2=evt.touches[1].pageY;
 			var Distance=Math.sqrt(Math.pow((X2 - X1),2) + Math.pow((Y2 - Y1),2)) ;
 			var zoomDelta=(Distance / this.startDistance );
-			//document.getElementById("debug").textContent=zoomDelta;
 			var zz=this.startZZ+zoomDelta -1;
 			if(zz < 1){
 				zz=1;
@@ -622,7 +616,6 @@ function kmap(map){
 			this.moveX=(x+dx) /faktor +this.startMoveX ;
 			this.moveY=(y+dy) /faktor +this.startMoveY ;
 
-			//document.getElementById("debug").textContent=x+":"+y+": "+dx+":"+dy+": "+this.startMoveX+":"+f+zoomDelta;
 
 			var center=new kPoint(this.lat,this.lng);
 			this.setCenter2(center,zz);
@@ -942,9 +935,7 @@ function kmap(map){
 			delta = evt.wheelDelta/150;
 		}
 		var dzoom=delta* this.wheelSpeedConfig["acceleration"]*0.03;
-//		alert( dzoom+":"+delta+":"+ this.wheelSpeedConfig["acceleration"]);
 
-		//document.getElementById("debug").textContent="zoom: "+this.zoom+" dzoom: "+dzoom+" zoomAccelerate: "+this.zoomAccelerate;
 
 		if(dzoom > 0 && this.zoomAccelerate < 0) this.zoomAccelerate=0;
 		if(dzoom < 0 && this.zoomAccelerate > 0) this.zoomAccelerate=0;
@@ -956,7 +947,6 @@ function kmap(map){
 			this.zoomAccelerate=0;
 		}
 	
-		//document.getElementById("debug").textContent=dzoom+":"+this.zoomAccelerate+":"+this.zoom;
 
 
 		var that=this;
@@ -973,9 +963,7 @@ function kmap(map){
 	this.wheelZoomTimeout=null;
         this.zooming=function(pageX,pageY){
 		var ttt=this.zoomAccelerate;
-		//document.getElementById("debug").textContent=this.zoomAccelerate+":"+this.zoom;
 		
-		//this.zoomAccelerate=this.zoomAccelerate *0.7;
 		if(this.wheelZoomTimeout){
 			clearTimeout(this.wheelZoomTimeout);
 		}
@@ -997,7 +985,6 @@ function kmap(map){
 		if(this.zoomAccelerate < -this.wheelSpeedConfig["maxSpeed"]/10) this.zoomAccelerate=-this.wheelSpeedConfig["maxSpeed"]/10;
 		var oldzoom=this.zoom;
                 this.zoom=this.zoom+this.zoomAccelerate ;// * this.wheelSpeedConfig["speed"]; 
-		//document.getElementById("debug").textContent=this.zoomAccelerate+":"+this.zoom+":"+tt+":"+ttt;
 		
                 if(this.zoom <= 1){
 			this.zoom=1;
@@ -1005,7 +992,6 @@ function kmap(map){
                 if(this.zoom >= 18){
 			this.zoom=18;
 		}
-		//document.getElementById("debug").textContent=this.zoomAccelerate+":"+this.zoom;
 
 		faktor=Math.pow(2,this.zoom);   
 		var zoomCenterDeltaX=(pageX )   -this.width/2;
@@ -1051,8 +1037,6 @@ function kmap(map){
 		var tempFunction=function () {that.animateMove(speedX*that.wheelSpeedConfig["moveAnimationSlowdown"] , speedY*that.wheelSpeedConfig["moveAnimationSlowdown"] ); }
                 this.animateMoveTimeout=window.setTimeout(tempFunction,20);
                 this.setCenter2(this.center,this.zoom);
-		//document.getElementById("debug").textContent=speedX+":"+speedY+":"+animcount;
-		//animcount++;
 	}
 
 
@@ -1248,8 +1232,6 @@ function kmap(map){
 		var centerLat360=(minlat360 + maxlat360)/2;
 		var centerLat=y2lat(centerLat360);
 		var center=new kPoint(centerLat,centerLng);
-		debugCenterLat=centerLat;
-		debugCenterLng=centerLng;
 		var extendY=Math.abs(maxlat360 - minlat360);
 		var extendX=Math.abs(maxlng - minlng);
 		if(extendX / this.width > extendY / this.height){
@@ -1313,7 +1295,6 @@ function kmap(map){
 			var lat=oldLat+dLat*i;
 			var lng=oldLng+dLng*i;
 			var zoom= oldZoom+dZoom*i;
-			//document.getElementById("debug").textContent="lat: "+lat+" lng: "+lng+" zoom: "+zoom;
 
 			var tempFunction=function(){ that.animatedGotoExec(oldLat,oldLng,oldZoom,dLat,dLng,dZoom,oldMoveX,oldMoveY,dMoveX,dMoveY)}
 			window.setTimeout(tempFunction,10*i);
@@ -1385,7 +1366,6 @@ function kmap(map){
 
                 point["x"]=-x +this.width/2 ;
                 point["y"]=-y +this.height/2 ;
-//                var debug=point["x"]+":"+point["y"]+":"+this.intZoom;
                 return(point);
 
         }
@@ -1519,7 +1499,6 @@ function kmap(map){
 			intZoom=18;
 		}
 		this.intZoom=intZoom;
-		//document.getElementById("debug").textContent=intZoom;
 		if(!this.visibleZoom){
 			this.visibleZoom=intZoom;
 			this.oldIntZoom=intZoom;
@@ -1641,10 +1620,6 @@ function kmap(map){
 			var layerDiv=this.layers[intZoom]["layerDiv"];
 			var latDelta=lat2y(lat)-this.layers[intZoom]["startLat"];
 			var lngDelta=lng-this.layers[intZoom]["startLng"];
-			debugLatDelta=latDelta;
-			debugLngDelta=lngDelta;
-			debugStartLat=this.layers[intZoom]["startLat"];
-			//console.log(latDelta+":"+lngDelta);
 		}
 		layerDiv.style.visibility="hidden";
 
@@ -1899,23 +1874,6 @@ function kmap(map){
 			if(x==0 && y==0) break;
 		}
 			
-		/*
-		var xx=parseInt(xxx/1000000);
-		var yy=parseInt(yyy/1000000);
-		var xx1=(xxx/1000000 - xx)*1000000;
-		var yy1=(yyy/1000000 - yy)*1000000;
-		var n1=xx+yy*2;	
-		var n2=Math.round(xx1)+Math.round(yy1)*2;
-		var n=parseInt(xxx)+parseInt(yyy)*2;	
-		var nn="";
-		if(n2 <100000) nn="0";
-		if(n2 <10000) nn="00";
-		if(n2 <1000) nn="000";
-		if(n2 <100) nn="0000";
-		if(n2 <10) nn="00000";
-		var nnn=n1+nn+n2;
-		*/
-		//document.getElementById("debug").textContent=n+":"+nn;
 		return n;
 	}
 
@@ -1991,7 +1949,6 @@ function kmap(map){
 			this.layers[this.visibleZoom]["layerDiv"].style.visibility="";
 		}		
 		}		
-		//document.getElementById("debug").textContent=this.visibleZoom+" : "+this.intZoom;
 
         }
 	//
