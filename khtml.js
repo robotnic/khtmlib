@@ -302,6 +302,7 @@ function kPolyline(points,style){
 function kPoint(lat,lng){
 	this.lat=parseFloat(lat);
 	this.lng=parseFloat(lng);
+	
 	this.getLat=function(){
 		return this.lat;
 	}
@@ -908,7 +909,6 @@ function kmap(map){
 
 	this.zoomAccelerate=0;
 	this.mousewheel=function(evt){
-		
 		if(evt.preventDefault){
 			evt.preventDefault(); // The W3C DOM way
 		} else {
@@ -927,12 +927,16 @@ function kmap(map){
 		if (evt.wheelDelta) { /* IE/Opera/Chrom. */
 			delta = evt.wheelDelta/60;
 			if (window.opera){
-				delta = delta;
+				delta = delta/5;
 			}
 		} else if (evt.detail) { /** Mozilla case. */
 			delta = -evt.detail/3;
 		}
-
+		if(navigator.userAgent.indexOf("Chrome")!=-1){
+		if(navigator.userAgent.indexOf("Linux")!=-1){
+			delta = evt.wheelDelta/180;
+		}
+		}
 
 		var dzoom=delta* this.wheelSpeedConfig["acceleration"]*0.03;
 
@@ -950,7 +954,7 @@ function kmap(map){
 
 		var that=this;
 
-		//Was ist das?
+		
 		var tempFunction=function () {that.zooming(that.pageX(evt),that.pageY(evt))};
 		if(this.wheelZoomTimeout){
 			window.clearTimeout(this.wheelZoomTimeout);
@@ -2041,7 +2045,7 @@ function kmap(map){
 		this.wheelSpeedConfig["animate"]=true;
 	}
         if(navigator.userAgent.indexOf("Opera")!=-1){
-		this.wheelSpeedConfig["animate"]=true;
+		this.wheelSpeedConfig["animate"]=false;
 	}
 	this.wheelSpeedConfig["zoomAnimationSlowdown"]=0.02;
 	this.wheelSpeedConfig["animationFPS"]=50;
