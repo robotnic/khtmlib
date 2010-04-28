@@ -908,21 +908,23 @@ function kmap(map){
 
 	this.zoomAccelerate=0;
 	this.mousewheel=function(evt){
-		this.mapParent.focus();
+		
 		if(evt.preventDefault){
 			evt.preventDefault(); // The W3C DOM way
 		} else {
 			evt.returnValue = false; // The IE way
 		}
+		this.mapParent.focus();
 
 		this.wheelEventCounter++;
 		var that=this;
 		var tempFunction=function () {that.wheelEventCounter--};
 		window.setTimeout(tempFunction,1000);
-		
+	
+		delta=null;	
 		if (!evt) /* For IE. */
 			evt = window.event;
-		if (evt.wheelDelta) { /* IE/Opera. */
+		if (evt.wheelDelta) { /* IE/Opera/Chrom. */
 			delta = evt.wheelDelta/60;
 			if (window.opera){
 				delta = delta;
@@ -931,11 +933,8 @@ function kmap(map){
 			delta = -evt.detail/3;
 		}
 
-		if (navigator.userAgent.match("Safari") ){
-			delta = evt.wheelDelta/150;
-		}
-		var dzoom=delta* this.wheelSpeedConfig["acceleration"]*0.03;
 
+		var dzoom=delta* this.wheelSpeedConfig["acceleration"]*0.03;
 
 		if(dzoom > 0 && this.zoomAccelerate < 0) this.zoomAccelerate=0;
 		if(dzoom < 0 && this.zoomAccelerate > 0) this.zoomAccelerate=0;
@@ -950,10 +949,11 @@ function kmap(map){
 
 
 		var that=this;
-		clearTimeout(this.wheelZoomTimeout);
+
+		//Was ist das?
 		var tempFunction=function () {that.zooming(that.pageX(evt),that.pageY(evt))};
 		if(this.wheelZoomTimeout){
-			clearTimeout(this.wheelZoomTimeout);
+			window.clearTimeout(this.wheelZoomTimeout);
 		}
 		window.setTimeout(tempFunction,20);
 
@@ -976,10 +976,7 @@ function kmap(map){
 			}else{
 				//alert("gut");
 			}
-                }else{
-			var tt=this.zoomAccelerate;
-			this.zoomAccelerate=0;
-		}
+                }
 		
 		if(this.zoomAccelerate > this.wheelSpeedConfig["maxSpeed"]/10) this.zoomAccelerate=this.wheelSpeedConfig["maxSpeed"]/10;
 		if(this.zoomAccelerate < -this.wheelSpeedConfig["maxSpeed"]/10) this.zoomAccelerate=-this.wheelSpeedConfig["maxSpeed"]/10;
@@ -1018,6 +1015,9 @@ function kmap(map){
 		this.setCenter2(this.center,this.zoom);
 		this.renderOverlays();
 
+                if(Math.abs(this.zoomAccelerate ) < this.wheelSpeedConfig["zoomAnimationSlowdown"]*2){	
+			this.zoomAccelerate=0;
+		}
         }
 
 	//
@@ -1299,8 +1299,10 @@ function kmap(map){
 			var tempFunction=function(){ that.animatedGotoExec(oldLat,oldLng,oldZoom,dLat,dLng,dZoom,oldMoveX,oldMoveY,dMoveX,dMoveY)}
 			window.setTimeout(tempFunction,10*i);
 		}
+		/*
 		var tempFunction=function(){ that.setCenter2(new kPoint(newLat,newLng),newZoom);that.renderOverlays()}
 		window.setTimeout(tempFunction,time+200);
+		*/
 
 	}
 	this.animatedGotoExec=function(oldLat,oldLng,oldZoom,dLat,dLng,dZoom,oldMoveX,oldMoveY,dMoveX,dMoveY){
@@ -1489,9 +1491,22 @@ function kmap(map){
 	========================================================================= */
 
 	
+	this.layerDrawLastFrame=null;
 	this.layer=function(map,lat,lng, moveX, moveY, zoom){
 		if(!this.css3d){
-			if(this.blocked)return;
+			if(this.layerDrawLastFrame){
+				window.clearTimeout(this.layerDrawLastFrame);
+				this.layerDrawLastFrame=null;
+			}
+			if(this.blocked){
+		
+				//the last frames must be drawn to have good result
+				var that=this;
+				var tempFunction=function () {that.layer(map,lat,lng, moveX, moveY, zoom )};
+				this.layerDrawLastFrame=window.setTimeout(tempFunction,100);
+	
+				return;
+			}
 			this.blocked=true;
 		}
 		var intZoom=Math.floor(zoom);
@@ -1530,11 +1545,11 @@ function kmap(map){
 		}
 		this.oldIntZoom=intZoom;	
 
-		//firefox cheats a little bit and needs a time penalt
+		//firefox cheats a little bit and needs a time penalty
 		if(!this.css3d){
 			var that=this;
 			var func=function(){that.blocked=false;};
-			window.setTimeout(func,10);
+			window.setTimeout(func,20);
 		}
 	}
 
