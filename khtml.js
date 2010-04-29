@@ -134,18 +134,35 @@ function kPolyline(points,style){
 	
 		
 	this.init=function(mapObj){
-		this.path=document.createElementNS("http://www.w3.org/2000/svg","path");
-		this.path.setAttribute("fill","none");
+		if(mapObj.svgSupport){
+			this.path=document.createElementNS("http://www.w3.org/2000/svg","path");
+			this.path.setAttribute("fill","none");
+		}else{
+			if(document.namespaces['v'] == null) { 
+				var stl = document.createStyleSheet(); 
+				stl.addRule("v\\:*", "behavior: url(#default#VML);"); 
+				document.namespaces.add("v", "urn:schemas-microsoft-com:vml"); 
+			}
+			this.path=document.createElement("v:polyline");
+			this.path.strokecolor="green";
+			//this.path.setAttribute("fillcolor","none");
+			//this.path.setAttribute("stroked","f");
+		}
+/*
 		for(var i=0; i < this.styleArray.length;i++){
 			this.path.setAttribute(this.styleArray[i][0],this.styleArray[i][1]);
 		}
-		
+*/		
 		if(!mapObj.css3dvector){	
 			mapObj.svg.appendChild(this.path);
+			//this.path.setAttribute("stroked","f");
 		}else{
-			this.pathsvg=document.createElementNS("http://www.w3.org/2000/svg","svg");
-			//this.pathsvg.style.top=-mapObj.svgHeight/2;
-			//this.pathsvg.style.left=-mapObj.svgWidth/2;
+			if(mapObj.svgSupport){
+				this.pathsvg=document.createElementNS("http://www.w3.org/2000/svg","svg");
+			}else{
+				this.pathsvg=document.createElement("div");
+
+			}
 			this.pathsvg.style.width=mapObj.svgWidth;
 			this.pathsvg.style.height=mapObj.svgHeight;
 			this.pathsvg.style.position="absolute";
@@ -196,7 +213,11 @@ function kPolyline(points,style){
 
 
 
-		var d="M";
+		if(mapObj.svgSupport){
+			var d="M";
+		}else{
+			var d="";
+		}
 		var c=0;	
 		for(var point in this.points){
 			if(mapObj.css3dvector){
@@ -204,14 +225,28 @@ function kPolyline(points,style){
 			}else{
 				var xy=mapObj.latlngToXY(this.points[point]);	
 			}
-			if(d=="M"){
-				d+=xy["x"]+","+xy["y"];
+			if(mapObj.svgSupport){
+				if(d=="M"){
+					d+=xy["x"]+","+xy["y"];
+				}else{
+					d+=" L"+xy["x"]+","+xy["y"];
+				}
 			}else{
-				d+=" L"+xy["x"]+","+xy["y"];
+					d+=xy["x"]+"px,"+xy["y"]+"px ";
+
 			}
 		}
+		//alert(d);
 		//console.log(d);
-		path.setAttribute("d",d);
+		if(mapObj.svgSupport){
+			path.setAttribute("d",d);
+		}else{
+			//alert(path.outerHTML);
+			//path.setAttribute("points",d);
+			path.points.value=d;
+			//alert(path.outerHTML);
+		}
+		//alert(path.outerHTML);
 		if(!mapObj.css3dvector){
 			svg.appendChild(path);
 		}else{
@@ -240,6 +275,7 @@ function kPolyline(points,style){
 		}
 	}
 	this.setText=function(text,style){
+		if(!this.map.svgSupport)return;
 		if(style){
 			this.textStyleArray=style.getArray();
 		}else{
@@ -258,11 +294,11 @@ function kPolyline(points,style){
 		}
 		var textNode=document.createTextNode(text);
 		this.textPath.appendChild(textNode);
+		
 
 		for(var i=0; i < this.textStyleArray.length;i++){
                         this.text.setAttribute(this.textStyleArray[i][0],this.textStyleArray[i][1]);
-                }
-
+		}
 	}
 	this.setPoints=function(points){
 		this.points=points;
@@ -434,17 +470,13 @@ function kmap(map){
 	}
 	this.renderOverlays=function(){
 		this.overlayDiv.style.display="";	
-		if(!this.internetExplorer){
+		//if(!this.internetExplorer){
 			this.svg.style.display="";	
-		}
+		//}
 		var that=this;
 
 		for(obj in this.overlays){
-			try{
-				this.overlays[obj].render(that);
-			}catch(e){
-				//hello ie
-			}
+			this.overlays[obj].render(that);
 		}
 
 	}
@@ -731,6 +763,7 @@ function kmap(map){
 			var style=new kStyle();
 			style.addStyle("stroke-width",1);
 			style.addStyle("stroke","green");
+			style.addStyle("stroked","green");
 			this.measureLine=new kPolyline(points,style);
 			this.addOverlay(this.measureLine);
 
@@ -772,7 +805,6 @@ function kmap(map){
 		this.lastMouseX=this.pageX(evt);
 		this.lastMouseY=this.pageY(evt);
 		if(this.distanceMeasuring){
-			if(!this.internetExplorer){
 			if(this.moveMarker){
 				//this.normalize();
 				var movePoint=this.XYTolatlng( this.pageX(evt),this.height - this.pageY(evt));
@@ -787,6 +819,7 @@ function kmap(map){
 					points.push(movePoint);
 					points.push(this.distanceStartpoint);
 				}
+				
 				this.measureLine.setPoints(points);
 				var mbr=new kBounds(movePoint,this.distanceStartpoint);
 				var d=mbr.getDistanceText();
@@ -807,7 +840,6 @@ function kmap(map){
 				var that=this;
 				this.measureLine.render(that);
 				return;
-			}
 			}
 		}
 		if(evt.shiftKey){
@@ -934,7 +966,7 @@ function kmap(map){
 		}
 		if(navigator.userAgent.indexOf("Chrome")!=-1){
 		if(navigator.userAgent.indexOf("Linux")!=-1){
-			delta = evt.wheelDelta/180;
+			delta = evt.wheelDelta/120;
 		}
 		}
 
@@ -1734,9 +1766,7 @@ function kmap(map){
 				default: var server="f";
 			}
 				
-                        //var src="http://"+server+".tile.openstreetmap.org/"+intZoom+"/"+xx+"/"+yy+".png";
-			var src=this.getTileSrc(xx,yy,intZoom);
-
+                        var src="http://"+server+".tile.openstreetmap.org/"+intZoom+"/"+xx+"/"+yy+".png";
 //                        var src="/iphonemapproxy/imgproxy.php?url=http://"+server+".tile.openstreetmap.org/"+intZoom+"/"+xx+"/"+yy+".png";
 			//see imageproxy.php for offline map usage
 
@@ -1747,9 +1777,7 @@ function kmap(map){
 			//end bing tiles
 
 			//
-                        //var id="http://"+server+".tile.openstreetmap.org/"+intZoom+"/"+xxx+"/"+yyy+".png";
-			var id=src+":"+xxx+":"+yyy;
-
+                        var id="http://"+server+".tile.openstreetmap.org/"+intZoom+"/"+xxx+"/"+yyy+".png";
 		
 			//draw images only if they don't exist on the layer	
                         if(this.layers[intZoom]["images"][id] == null){
@@ -1875,22 +1903,6 @@ function kmap(map){
 		layerDiv.style.visibility="";
 	}
 // ====== END OF DRAW ======	
-
-        this.getTileSrc=function(x,y,z){
-                        //Calculate the tile server. Use of a,b,c should increase speed but should not influence cache.
-                        var hashval=(x + y) %3;
-                        switch(hashval){
-                                case 0:var server="a";break;
-                                case 1:var server="b";break;
-                                case 2:var server="c";break;
-                                default: var server="f";
-                        }
-
-                        var src="http://"+server+".tile.openstreetmap.org/"+z+"/"+x+"/"+y+".png";
-
-        //              var src="http://khm1.google.com/kh/v=58&x="+x+"&s=&y="+y+"&z="+z+"&s=Gal";
-                        return src;
-        }
 
 
 //
@@ -2050,8 +2062,10 @@ function kmap(map){
 	//
 
 	this.internetExplorer=false;
+	this.svgSupport=true;
         if(navigator.userAgent.indexOf("MSIE")!=-1){
                 this.internetExplorer=true;
+		this.svgSupport=false;
 		//alert("Sorry, Internet Explorer does not support this map, please use a good Browser like chrome, safari, opera.");
         }
 	this.maxIntZoom=18;
@@ -2121,6 +2135,19 @@ function kmap(map){
 	this.lastMouseX=this.width/2;
 	this.lastMouseY=this.height/2;
 
+
+	if(this.svgSupport){
+		this.svg=document.createElementNS("http://www.w3.org/2000/svg","svg");
+	}else{
+		this.svg=document.createElement("div");
+	}
+	this.svg.style.width="100%";
+	this.svg.style.height="100%";
+	this.svg.style.position="absolute";
+	map.appendChild(this.svg);
+	map.style.overflow="hidden";
+
+
         this.overlayDiv=document.createElement("div");
         this.overlayDiv.style.width="100%";
         this.overlayDiv.style.height="100%";
@@ -2128,14 +2155,6 @@ function kmap(map){
         this.overlayDiv.style.overflow="hidden";
 	map.appendChild(this.overlayDiv);
 
-	if(!this.internetExplorer){
-		this.svg=document.createElementNS("http://www.w3.org/2000/svg","svg");
-		this.svg.style.width="100%";
-		this.svg.style.height="100%";
-		this.svg.style.position="absolute";
-		map.appendChild(this.svg);
-		map.style.overflow="hidden";
-	}
 
         this.layers=new Array();
         this.overlays=new Array();
