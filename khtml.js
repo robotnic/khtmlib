@@ -137,6 +137,9 @@ function kPolyline(points,style){
 		if(mapObj.svgSupport){
 			this.path=document.createElementNS("http://www.w3.org/2000/svg","path");
 			this.path.setAttribute("fill","none");
+			for(var i=0; i < this.styleArray.length;i++){
+				this.path.setAttribute(this.styleArray[i][0],this.styleArray[i][1]);
+			}
 		}else{
 			if(document.namespaces['v'] == null) { 
 				var stl = document.createStyleSheet(); 
@@ -148,11 +151,7 @@ function kPolyline(points,style){
 			//this.path.setAttribute("fillcolor","none");
 			//this.path.setAttribute("stroked","f");
 		}
-/*
-		for(var i=0; i < this.styleArray.length;i++){
-			this.path.setAttribute(this.styleArray[i][0],this.styleArray[i][1]);
-		}
-*/		
+
 		if(!mapObj.css3dvector){	
 			mapObj.svg.appendChild(this.path);
 			//this.path.setAttribute("stroked","f");
@@ -548,6 +547,7 @@ function kmap(map){
 	//
 
 	this.start=function(evt){
+
 		if(evt.preventDefault){
 			evt.preventDefault(); // The W3C DOM way
 		} else {
@@ -567,8 +567,10 @@ function kmap(map){
 			}
 			this.mousedownTime=(new Date()).getTime();
 			var that=this;
+			
 			var tempFunction=function () {that.autoZoomOut()};
 			this.zoomOutInterval=window.setInterval(tempFunction,20);
+		
 		}
 			
 		if(evt.touches.length ==2){
@@ -588,6 +590,7 @@ function kmap(map){
 	}
 
 	this.move=function(evt){
+
 		if(evt.preventDefault){
 			evt.preventDefault(); // The W3C DOM way
 		} else {
@@ -656,6 +659,7 @@ function kmap(map){
 	}
 
 	this.end=function(evt){
+
 		if(evt.preventDefault){
 			evt.preventDefault(); // The W3C DOM way
 		} else {
@@ -2216,9 +2220,12 @@ function kmap(map){
 		// how to do that in ie?
 		Event.attach(window,"resize",this.setMapPosition,this,false);
 	}
+        if(navigator.userAgent.indexOf("Konqueror")!=-1){
+		var w=map;
+	}
 	Event.attach(map,"touchstart",this.start,this,false);
 	Event.attach(map,"touchmove",this.move,this,false);
-	Event.attach(w,"touchend",this.end,this,false);
+	Event.attach(map,"touchend",this.end,this,false);
 	Event.attach(w,"mousemove",this.mousemove,this,false);
 	Event.attach(map,"mousedown",this.mousedown,this,false);
 	Event.attach(w,"mouseup",this.mouseup,this,false);
