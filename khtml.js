@@ -1761,6 +1761,10 @@ function kmap(map){
                         if(yy < 0) continue;
                         if(yy >= faktor) continue;
 
+			var src=this.getTileSrc(xx,yy,intZoom);
+                        var id=src+":"+xxx+":"+yyy;
+
+			/*
 			//Calculate the tile server. Use of a,b,c should increase speed but should not influence cache.
 			var hashval=(xx + yy) %3;
 			switch(hashval){
@@ -1782,6 +1786,7 @@ function kmap(map){
 
 			//
                         var id="http://"+server+".tile.openstreetmap.org/"+intZoom+"/"+xxx+"/"+yyy+".png";
+			*/
 		
 			//draw images only if they don't exist on the layer	
                         if(this.layers[intZoom]["images"][id] == null){
@@ -1907,6 +1912,23 @@ function kmap(map){
 		layerDiv.style.visibility="";
 	}
 // ====== END OF DRAW ======	
+
+        this.getTileSrc=function(x,y,z){
+                        //Calculate the tile server. Use of a,b,c should increase speed but should not influence cache.
+                        var hashval=(x + y) %3;
+                        switch(hashval){
+                                case 0:var server="a";break;
+                                case 1:var server="b";break;
+                                case 2:var server="c";break;
+                                default: var server="f";
+                        }
+
+                        var src="http://"+server+".tile.openstreetmap.org/"+z+"/"+x+"/"+y+".png";
+
+        //              var src="http://khm1.google.com/kh/v=58&x="+x+"&s=&y="+y+"&z="+z+"&s=Gal";
+                        return src;
+        }
+
 
 
 //
