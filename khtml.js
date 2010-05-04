@@ -567,7 +567,7 @@ function kmap(map){
 			}
 			this.mousedownTime=(new Date()).getTime();
 			var that=this;
-			
+			clearTimeout(this.zoomOutInterval);	
 			var tempFunction=function () {that.autoZoomOut()};
 			this.zoomOutInterval=window.setInterval(tempFunction,20);
 		
@@ -2032,6 +2032,12 @@ function kmap(map){
 	// Image load error
 	//
         this.imgError=function(evt){
+                if(evt.target){
+                        var img=evt.target;
+                }else{
+                        var img=evt.srcElement;
+                }
+		img.parentNode.removeChild(img);
                 //evt.target.style.backgroundColor="lightgrey";
 		this.imgLoaded(evt);
         }
@@ -2090,6 +2096,11 @@ function kmap(map){
 	this.internetExplorer=false;
 	this.svgSupport=true;
         if(navigator.userAgent.indexOf("MSIE")!=-1){
+                this.internetExplorer=true;
+		this.svgSupport=false;
+		//alert("Sorry, Internet Explorer does not support this map, please use a good Browser like chrome, safari, opera.");
+        }
+        if(navigator.userAgent.indexOf("Android")!=-1){
                 this.internetExplorer=true;
 		this.svgSupport=false;
 		//alert("Sorry, Internet Explorer does not support this map, please use a good Browser like chrome, safari, opera.");
