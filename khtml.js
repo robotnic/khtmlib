@@ -1492,11 +1492,13 @@ function kmap(map){
 			top  += obj.offsetTop ;
 			obj = obj.offsetParent;
 		} while (obj.offsetParent);
-
+		/*
 		this.map.style.left=this.width/2+"px";  //not very good programming style
 		this.map.style.top=this.height/2+"px";  //not very good programming style
+		*/
 		this.mapTop=top;
 		this.mapLeft=left;
+
 	}
 
 
@@ -2055,9 +2057,11 @@ function kmap(map){
 	this.setMapPosition=function(){
 		//this.getSize();
 		var obj=this.mapParent;
-		this.clone.style.width=obj.offsetWidth+"px";
-		this.clone.style.height=obj.offsetHeight+"px";
 
+                this.width=obj.offsetWidth;
+                this.height=obj.offsetHeight;
+//		this.clone.style.width=obj.offsetWidth+"px";
+//		this.clone.style.height=obj.offsetHeight+"px";
 		var left=0;
 		var top=0;
 		do {
@@ -2065,21 +2069,27 @@ function kmap(map){
 			top  += obj.offsetTop ;
 			obj = obj.offsetParent;
 		} while (obj.offsetParent);
-		//console.log(left,top);
-                this.width=obj.offsetWidth;
-                this.height=obj.offsetHeight;
-                if(this.map){
-			this.map.style.left=this.width/2+"px";
-			this.map.style.top=this.height/2+"px";
-                }
+
+ //               this.width=obj.offsetWidth;
+  //              this.height=obj.offsetHeight;
 
 		this.mapTop=top;
 		this.mapLeft=left;
+		if(this.mapParent.style.position=="absolute"){
+			top=0;
+			left=0;
+		}
 		this.clone.style.top=top+"px";
 		this.clone.style.left=left+"px";
+		this.clone.style.width=this.width+"px";
+		this.clone.style.height=obj.height+"px";
+
 		this.clone.style.position="absolute";
 		this.clone.style.overflow="hidden";
-		document.body.appendChild(this.clone);
+
+		this.map.style.left=this.width/2+"px";  
+		this.map.style.top=this.height/2+"px"; 
+		//this.mapParent.appendChild(this.clone);
 	}
                        
 	//functions from wiki gps2xy 
@@ -2130,30 +2140,48 @@ function kmap(map){
 	this.framesCounter=0;
 
         this.mapParent=map;
-	mapInit=map;
+//	mapInit=map;
 	
-	map=mapInit.cloneNode(true);
-
-	this.clone=map;
-	map.removeAttribute("id");
-        var obj=mapInit;
+	this.clone=map.cloneNode(true); //clone is the same as the map div, but absolute positioned
+	this.clone.removeAttribute("id");
+	this.clone.style.overflow="hidden";
+	if(map.firstChild){
+		map.insertBefore(this.clone,map.firstChild);
+	}else{
+		map.appendChild(this.clone);
+	}
+       
+	//this.setMapPosition();
+        this.map=document.createElement("div");  //this is the div that holds the layers, but no marker and svg overlayes
+        this.map.style.position="absolute";
+        this.clone.appendChild(this.map);
+        //this.getSize();
+	this.clone.style.overflow="hidden";
 	this.setMapPosition();
+
+	if(this.svgSupport){
+		this.svg=document.createElementNS("http://www.w3.org/2000/svg","svg");
+	}else{
+		this.svg=document.createElement("div");
+	}
+	//container for Vector graphics (SVG, VML, and maybe Canvas for Android)
+	this.svg.style.width="100%";
+	this.svg.style.height="100%";
+	this.svg.style.position="absolute";
+	this.clone.appendChild(this.svg);
+
+
+	//div for markers
+        this.overlayDiv=document.createElement("div");
+        this.overlayDiv.style.width="100%";
+        this.overlayDiv.style.height="100%";
+        this.overlayDiv.style.position="absolute";
+        this.overlayDiv.style.overflow="hidden";
+	this.clone.appendChild(this.overlayDiv);
 
 	//should be bigger than screen
 	this.svgWidth=100000;
 	this.svgHeight=100000;
-/*
-	var left=0;
-	var top=0;
-        do {
-                left += obj.offsetLeft;
-                top  += obj.offsetTop ;
-                obj = obj.offsetParent;
-        } while (obj.offsetParent);
-	map.style.top=top+"px";
-	map.style.left=left+"px";
-*/
-	//document.body.appendChild(map);
 
 	//distance tool
 	this.distanceMeasuring="no";
@@ -2163,34 +2191,9 @@ function kmap(map){
 	this.moveAnimationDesktop=false;
 	this.moveAnimationBlocked=false;
 
-
-        this.map=document.createElement("div");
-        this.map.style.position="absolute";
-        map.appendChild(this.map);
-        this.getSize();
-
 	this.lastMouseX=this.width/2;
 	this.lastMouseY=this.height/2;
 
-
-	if(this.svgSupport){
-		this.svg=document.createElementNS("http://www.w3.org/2000/svg","svg");
-	}else{
-		this.svg=document.createElement("div");
-	}
-	this.svg.style.width="100%";
-	this.svg.style.height="100%";
-	this.svg.style.position="absolute";
-	map.appendChild(this.svg);
-	map.style.overflow="hidden";
-
-
-        this.overlayDiv=document.createElement("div");
-        this.overlayDiv.style.width="100%";
-        this.overlayDiv.style.height="100%";
-        this.overlayDiv.style.position="absolute";
-        this.overlayDiv.style.overflow="hidden";
-	map.appendChild(this.overlayDiv);
 
 
         this.layers=new Array();
