@@ -1,7 +1,7 @@
 
 //
 //  khtml javascript library
-//  verion 0.34
+//  verion 0.54
 //  LGPL Bernhard Zwischenbrugger
 //  http://www.khtml.org/iphonemap/help.php
 //
@@ -482,7 +482,7 @@ function kmap(map){
 
 	this.hideOverlays=function(){
 		this.overlayDiv.style.display="none";	
-		if(!this.internetExplorer){
+		if(this.svgSupport){
 			this.svg.style.display="none";	
 		}
 		/*
@@ -2039,6 +2039,7 @@ function kmap(map){
                 }else{
                         var img=evt.srcElement;
                 }
+		if(!img)return;
 		img.parentNode.removeChild(img);
                 //evt.target.style.backgroundColor="lightgrey";
 		this.imgLoaded(evt);
@@ -2060,6 +2061,7 @@ function kmap(map){
 
                 this.width=obj.offsetWidth;
                 this.height=obj.offsetHeight;
+		var d=document.getElementById("debug");
 //		this.clone.style.width=obj.offsetWidth+"px";
 //		this.clone.style.height=obj.offsetHeight+"px";
 		var left=0;
@@ -2090,6 +2092,11 @@ function kmap(map){
 		this.map.style.left=this.width/2+"px";  
 		this.map.style.top=this.height/2+"px"; 
 		//this.mapParent.appendChild(this.clone);
+		var center=this.getCenter();
+		var zoom=this.getZoom();
+		if(zoom){
+			this.setCenter2(this.getCenter(),this.getZoom());
+		}
 	}
                        
 	//functions from wiki gps2xy 
@@ -2111,7 +2118,7 @@ function kmap(map){
 		//alert("Sorry, Internet Explorer does not support this map, please use a good Browser like chrome, safari, opera.");
         }
         if(navigator.userAgent.indexOf("Android")!=-1){
-                this.internetExplorer=true;
+                //this.internetExplorer=true;
 		this.svgSupport=false;
 		//alert("Sorry, Internet Explorer does not support this map, please use a good Browser like chrome, safari, opera.");
         }
