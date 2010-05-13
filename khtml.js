@@ -565,7 +565,7 @@ function kmap(map) {
                 this.moveX = evt.touches[0].pageX / this.faktor / this.sc + this.startMoveX;
                 this.moveY = evt.touches[0].pageY / this.faktor / this.sc + this.startMoveY;
                 if (!this.zoomOutStarted) {
-                    if ((Math.abs(this.moveX - this.startMoveX) > 0.01) || (Math.abs(this.moveY - this.startMoveY) > 0.01)) {
+                    if ((Math.abs(this.moveX - this.startMoveX) > 5) || (Math.abs(this.moveY - this.startMoveY) > 5)) {
                         window.clearInterval(this.zoomOutInterval);
                         this.zoomOutSpeed = 0.01;
                         this.mousedownTime = null;
