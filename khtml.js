@@ -2042,7 +2042,11 @@ function kmap(map) {
     if (navigator.userAgent.indexOf("Android") != -1) {
         //this.internetExplorer=true;
         this.svgSupport = false;
-        //alert("Sorry, Internet Explorer does not support this map, please use a good Browser like chrome, safari, opera.");
+        //wordaround for Android - Android is not a good browser, remembers me to IE 5.5
+          var that=this;
+          var tempFunction=function () {that.blocked=false};
+          setInterval(tempFunction,300);
+
     }
     this.maxIntZoom = 18;
 
