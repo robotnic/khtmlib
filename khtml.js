@@ -1958,7 +1958,7 @@ function kmap(map) {
         } else {
             var img = evt.srcElement;
         }
-        if (!img) return;
+        if (!img.parentNode) return;
         img.parentNode.removeChild(img);
         //evt.target.style.backgroundColor="lightgrey";
         this.imgLoaded(evt);
