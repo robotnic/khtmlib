@@ -1983,13 +1983,29 @@ function kmap(map) {
         var d = document.getElementById("debug");
         //		this.clone.style.width=obj.offsetWidth+"px";
         //		this.clone.style.height=obj.offsetHeight+"px";
+        var relativeleft = 0;
+        var relativetop = 0;
+        do {
+	    if(obj.style.position=="absolute"){
+		break;
+            }
+            relativeleft += obj.offsetLeft;
+            relativetop += obj.offsetTop;
+            obj = obj.offsetParent;
+        } while (obj.offsetParent);
+
         var left = 0;
         var top = 0;
+        obj = this.mapParent;
+
         do {
             left += obj.offsetLeft;
             top += obj.offsetTop;
             obj = obj.offsetParent;
         } while (obj.offsetParent);
+
+
+
 
         //               this.width=obj.offsetWidth;
         //              this.height=obj.offsetHeight;
@@ -1999,8 +2015,8 @@ function kmap(map) {
             top = 0;
             left = 0;
         }
-        this.clone.style.top = top + "px";
-        this.clone.style.left = left + "px";
+        this.clone.style.top = relativetop + "px";
+        this.clone.style.left = relativeleft + "px";
         this.clone.style.width = this.width + "px";
         this.clone.style.height = obj.height + "px";
 
