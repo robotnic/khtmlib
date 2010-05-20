@@ -507,6 +507,10 @@ function kmap(map) {
     //  Touchscreen
     //  Here also the multitouch zoom is done
     //
+
+    this.oldMoveX=0;
+    this.oldMoveY=0;
+
     this.start = function (evt) {
         if (evt.preventDefault) {
             evt.preventDefault(); // The W3C DOM way
@@ -548,8 +552,11 @@ function kmap(map) {
             this.startMoveX = this.moveX - x;
             this.startMoveY = this.moveY - y;
         }
+	this.oldMoveX=this.moveX;
+	this.oldMoveY=this.moveY;
     }
 
+	this.moveok=true;
     this.move = function (evt) {
         if (evt.preventDefault) {
             evt.preventDefault(); // The W3C DOM way
@@ -565,7 +572,8 @@ function kmap(map) {
                 this.moveX = evt.touches[0].pageX / this.faktor / this.sc + this.startMoveX;
                 this.moveY = evt.touches[0].pageY / this.faktor / this.sc + this.startMoveY;
                 if (!this.zoomOutStarted) {
-                    if ((Math.abs(this.moveX - this.startMoveX) > 5) || (Math.abs(this.moveY - this.startMoveY) > 5)) {
+                    if ((Math.abs(this.moveX - this.oldMoveX)  > 5) || (Math.abs(this.moveY - this.oldMoveY) > 5)) {
+			//alert(this.moveX+":"+this.moveY);
                         window.clearInterval(this.zoomOutInterval);
                         this.zoomOutSpeed = 0.01;
                         this.mousedownTime = null;
@@ -574,7 +582,9 @@ function kmap(map) {
                     this.setCenter2(center, this.zoom);
                     this.moveAnimationBlocked = false;
                 }
-                if ((Math.abs(this.moveX - this.startMoveX) > 0.01) || (Math.abs(this.moveY - this.startMoveY) > 0.01)) {
+                if ((Math.abs(this.moveX - this.oldMoveX) > 5) || (Math.abs(this.moveY - this.oldMoveY) >5)) {
+		//	alert(this.moveX+":"+this.moveX);
+			//alert(99);
                     this.mousedownTime = null; //prevents doubleclick if map is moved already
                 }
             } else {
@@ -624,6 +634,8 @@ function kmap(map) {
         }
         window.clearInterval(this.zoomOutInterval);
         this.zoomOutStarted = false;
+	this.zoomOutSpeed = 0.01;
+
         if (evt.touches.length == 0) {
             this.moveok = true;
             if (this.moveAnimationMobile) {
@@ -1095,10 +1107,10 @@ function kmap(map) {
             if (now - this.mousedownTime > this.zoomOutTime) {
                 this.zoomOutStarted = true;
                 //var center=new kPoint(this.lat,this.lng);
-                var center = this.center;
+                var center = this.getCenter();
                 var zoom = this.zoom - this.zoomOutSpeed;
                 if (zoom < 1) zoom = 1;
-                this.setCenter2(center, zoom);
+                this.setCenter(center, zoom);
                 this.zoomOutSpeed = this.zoomOutSpeed * 1.01;
             }
         }
@@ -2018,7 +2030,7 @@ function kmap(map) {
         this.clone.style.top = relativetop + "px";
         this.clone.style.left = relativeleft + "px";
         this.clone.style.width = this.width + "px";
-        this.clone.style.height = obj.height + "px";
+        this.clone.style.height = this.height + "px";
 
         this.clone.style.position = "absolute";
         this.clone.style.overflow = "hidden";
