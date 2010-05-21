@@ -825,6 +825,7 @@ function kmap(map) {
             if (this.movestarted) {
                 this.lastMoveX = this.moveX;
                 this.lastMoveY = this.moveY;
+                this.lastMoveTime = new Date();
                 this.moveX = (this.pageX(evt)) / this.faktor / this.sc + this.startMoveX;
                 this.moveY = (this.pageY(evt)) / this.faktor / this.sc + this.startMoveY;
 
@@ -864,9 +865,14 @@ function kmap(map) {
         if (this.wheelSpeedConfig["moveAnimateDesktop"]) {
             if (this.movestarted) {
                 if (this.moveAnimationBlocked == false) {
-                    var speedX = this.lastMoveX - this.moveX;
-                    var speedY = this.lastMoveY - this.moveY;
-                    this.animateMove(speedX, speedY);
+	            var now=new Date();	
+                    var timeDelta=now - this.lastMoveTime;						
+                    var speedX = (this.lastMoveX - this.moveX) / timeDelta *30;
+                    var speedY = (this.lastMoveY - this.moveY) / timeDelta *30;
+			
+			if(Math.abs(speedX) > this.wheelSpeedConfig["animateMinSpeed"] || Math.abs(speedY) > this.wheelSpeedConfig["animateMinSpeed"]){
+			    this.animateMove(speedX, speedY);
+			}
                 }
             }
         } else {
@@ -1497,7 +1503,7 @@ function kmap(map) {
             }
             this.blocked = true;
         }
-        var intZoom = Math.floor(zoom);
+        var intZoom = Math.round(zoom );
         if (intZoom > this.maxIntZoom) {
             intZoom = 18;
         }
@@ -1681,7 +1687,8 @@ function kmap(map) {
         var zoomDelta = zoom - intZoom;
         sc = Math.pow(2, zoomDelta);
 
-        if (sc < 1) sc = 1;
+//        if (sc < 1) sc = 1;
+        if (sc < 0.5) sc = 0.5;
         //here the bounds of the map are calculated.
         //there is NO preload of images. Preload makes everything slow
         minX = Math.floor((-width / 2 / sc) / this.tileW + dxDelta);
@@ -2095,6 +2102,7 @@ function kmap(map) {
     this.wheelSpeedConfig["moveAnimationSlowdown"] = 0.7;
     this.wheelSpeedConfig["rectShiftAnimate"] = true;
     this.wheelSpeedConfig["rectShiftAnimationTime"] = 1500;
+    this.wheelSpeedConfig["animateMinSpeed"]=1;
 
     //variables for performance check
     this.wheelEventCounter = 0;
@@ -2165,6 +2173,7 @@ function kmap(map) {
 
     this.lastMoveX = 0;
     this.lastMoveY = 0;
+    this.lastMoveTime = 0;
 
     this.startMoveX = 0;
     this.startMoveY = 0;
