@@ -1,0 +1,59 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<style type="text/css">
+#map{
+width:400px;
+height:300px;
+}
+</style>
+<script type="text/javascript" src="../../../js/khtml.js"> </script>
+<script type="text/javascript" src="../../../js/kmarker.js"> </script>
+<script type="text/javascript">
+
+var mr=new Object(khtml.maplib);
+var map=null; //global map object
+
+function init(){
+map=new mr.Map(document.getElementById("map"));
+var center=new mr.Point(46,12);
+map.centerAndZoom(center,3); //12 = zoomlevel
+
+makeMarkers();
+animate(0);
+}
+
+var markers=new Array();
+
+function makeMarkers(){
+	for(var i=0; i < 12;i++){
+		var img=document.createElement("img");
+		img.setAttribute("src","images/star.png");
+		var p=new mr.Point(48.2,15.6);
+		markers[i]=new mr.Marker(p,img);
+		map.addOverlay(markers[i]);
+
+	}
+}
+
+function animate(arc){
+	arc=parseFloat(arc);
+	for(var i=0; i<markers.length;i++){
+		var thearc=arc+360/markers.length*i;
+		var lat=Math.sin(thearc/360*2*Math.PI )*12 + 46;
+		var lng=Math.cos(thearc/360*2*Math.PI )*17 +12;
+		markers[i].position(new mr.Point(lat,lng));
+	}
+	//map.centerAndZoom(map.getCenter(),map.getZoom());
+	var cmd="animate("+(arc+1)+")";
+	setTimeout(cmd,50);
+}
+
+
+</script>
+</head>
+<body onload="init()">
+<div id="map"> </div>
+ 
+</body>
+</html>

@@ -1,0 +1,28 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<style type="text/css">
+#map{
+width:400px;
+height:300px;
+}
+</style>
+<script type="text/javascript" src="../../js/khtml.js"> </script>
+<script type="text/javascript">
+
+var mr=new Object(khtml.maplib);
+
+function init(){
+	var map=new mr.Map(document.getElementById("map"));  //dom element
+	var center=new mr.Point(48.2,15.6);  //latitude, longitude
+	map.centerAndZoom(center,12); //12 = zoomlevel0
+	map.wheelSpeedConfig["digizoom"]=false;
+}
+</script>
+</head>
+<body onload="init()">
+<h1>Have a look at the html source to see what's going on</h1>
+<div id="map"> </div>
+ 
+</body>
+</html>

@@ -1,0 +1,60 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<style type="text/css">
+#map{
+width:400px;
+height:300px;
+}
+</style>
+<script type="text/javascript" src="../../js/khtml.js"> </script>
+<script type="text/javascript">
+
+var mr=new Object(khtml.maplib);
+var map=null; //global map object
+
+function init(){
+	for(var i=0; i < 30;i++){
+		makemap();
+	}
+}
+function makemap(){
+var mapdiv=document.createElement("div");
+//var w=window.innerWidth;
+var w=document.documentElement.clientWidth
+var h=document.documentElement.clientHeight
+var left=Math.random()*w;
+var width=Math.random()*(w-left -15);
+var top=Math.random()*h -30;
+var height=Math.random()*(h -top -10);
+document.getElementById("maps").appendChild(mapdiv);
+
+mapdiv.style.left=left+"px";
+mapdiv.style.width=width+"px";
+mapdiv.style.top=top+"px";
+mapdiv.style.height=height+"px";
+mapdiv.style.position="absolute";
+mapdiv.style.border="1px solid black";
+mapdiv.style.backgroundColor="white";
+mapdiv.setAttribute("onmousedown","this.parentNode.appendChild(this)");
+
+
+var map=new mr.Map(mapdiv);
+var lat=Math.random()*180-90;
+var lng=Math.random()*360-180;
+lat=48.20868266425962;
+lng=16.374232771362188;
+var z=Math.round(Math.random()*18);
+var center=new mr.Point(lat,lng);
+map.centerAndZoom(center,z); //12 = zoomlevel
+}
+</script>
+</head>
+<body onload="init()">
+<h2>30 active maps on a single page</h2>
+<p>Page should scroll without performance problems. The maps will take the mousescroll event</p>
+
+<div id="maps"> </div>
+ 
+</body>
+</html>

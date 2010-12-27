@@ -1,0 +1,75 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<style type="text/css">
+body{
+font-family:Arial;
+}
+#map{
+width:100%;
+height:400px;
+float:right;
+	border:1px solid red;
+margin:16px;
+border:1px solid #efefef;
+background-color:white;
+-moz-box-shadow: 1px 1px 14px #dfdfdf;
+-webkit-box-shadow: 1px 1px 14px #dfdfdf;
+box-shadow: 1px 1px 14px #dfdfdf;
+padding:10px;
+}
+#htmloverlay{
+
+	position:relative;
+	top:0px;
+	left:0px;
+}
+.head{
+background-color:yellow;
+margin-top:6px;
+padding-left:10px;
+}
+table{
+background-color:lightgrey;
+cell-padding:0;
+opacity:0.8;
+}
+td{
+margin:0px;
+background-color:white;
+}
+
+#content{
+	position:absolute;
+	top:50px;
+	left:100px;
+	width:700px;
+	padding:20px;
+text-align: justify;
+}
+</style>
+<script type="text/javascript" src="../../js/khtml.js"> </script>
+<script type="text/javascript">
+
+var mr=new Object(khtml.maplib);
+var map=null; //global map object
+
+function init(){
+map=new mr.Map(document.getElementById("map"));
+var center=new mr.Point( 67.99840972647583,115.19839503647704);
+map.centerAndZoom(center,6); //12 = zoomlevel
+}
+</script>
+</head>
+<body onload="init()">
+<div id="content">
+<div id="map"> 
+<div id="htmloverlay">
+<div class="head">
+<h1>HTML inside Map </h1>
+</div>
+</div>
+</div>
+</div> 
+</body>
+</html>

@@ -1,0 +1,51 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<style type="text/css">
+#map{
+position:absolute;
+top:80px;
+left:20px;
+width:400px;
+height:300px;
+}
+#mapsmall{
+position:absolute;
+top:260px;
+left:300px;
+width:110px;
+height:110px;
+border:2px solid white;
+}
+
+</style>
+<script type="text/javascript" src="../../js/khtml.js"> </script>
+<script type="text/javascript">
+
+var mr=new Object(khtml.maplib);
+var map=null; 
+var map2=null; 
+
+function init(){
+map=new mr.Map(document.getElementById("map"));
+
+var center=new mr.Point(48.2,15.6);
+map.centerAndZoom(center,12); //12 = zoomlevel
+
+map.addCallbackFunction(follow);
+map2=new mr.Map(document.getElementById("mapsmall"));
+follow();
+}
+
+function follow(){
+	map2.centerAndZoom(map.center(),map.zoom() -4); 
+}
+</script>
+</head>
+<body onload="init()">
+<h2>Map with small overview map</h2>
+<div id="map"> </div>
+<div id="mapsmall"> </div>
+ 
+</body>
+</html>

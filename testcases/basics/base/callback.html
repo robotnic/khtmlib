@@ -1,0 +1,56 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<style type="text/css">
+#map{
+width:400px;
+height:300px;
+}
+#coords{
+position:absolute;
+left:450px;
+top:0px;
+}
+</style>
+<script type="text/javascript" src="../../js/khtml.js"> </script>
+<script type="text/javascript">
+
+var mr=new Object(khtml.maplib);
+var map=null; //global map object
+
+function init(){
+map=new mr.Map(document.getElementById("map"));
+var center=new mr.Point(48.2,15.6);
+map.centerAndZoom(center,12); //12 = zoomlevel
+map.addCallbackFunction(showCoordinates);
+}
+
+function showCoordinates(evt){
+	var lat=map.center().lat();
+	var lng=map.center().lng();
+	var zoom=map.zoom();
+	document.getElementById("lat").firstChild.nodeValue=lat;
+	document.getElementById("lng").firstChild.nodeValue=lng;
+	document.getElementById("zoom").firstChild.nodeValue=zoom;
+
+        var p=map.mouseToLatLng(evt);
+	document.getElementById("mouselat").firstChild.nodeValue=p.lat()+" ";
+	document.getElementById("mouselng").firstChild.nodeValue=p.lng()+" ";
+	
+}
+</script>
+</head>
+<body onload="init()">
+<div id="coords">
+<h4>Center of Map</h4>
+<div>lat: <span id="lat">0</span></div>
+<div>lng: <span id="lng">0</span></div>
+<div>zoom: <span id="zoom">0</span></div>
+<h4>Coordinats at mouse position</h4>
+<div>lat: <span id="mouselat">0</span></div>
+<div>lng: <span id="mouselng">0</span></div>
+</div>
+<div id="map" onmousemove="showCoordinates(event)"> </div>
+ 
+</body>
+</html>

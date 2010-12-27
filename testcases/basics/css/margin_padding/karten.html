@@ -1,0 +1,42 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" dir="ltr">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="stylesheet" href="test.css" type="text/css" media="screen" />
+<script type="text/javascript" src="../../../js/khtml.js"> </script>
+<script type="text/javascript">
+
+var mr=new Object(khtml.maplib);
+var map1=null; //global map object
+var map2=null; //global map object
+var map3=null; //global map object
+var map4=null; //global map object
+
+function init(){
+map1=new mr.Map(document.getElementById("bild1"));
+var center=new mr.Point(48.2,15.6);
+map1.centerAndZoom(center,12); //12 = zoomlevel
+
+
+map2=new mr.Map(document.getElementById("bild2"));
+var center=new mr.Point(48.2,15.6);
+map2.centerAndZoom(center,12); //12 = zoomlevel
+
+map3=new mr.Map(document.getElementById("bild3"));
+var center=new mr.Point(48.2,15.6);
+map3.centerAndZoom(center,12); //12 = zoomlevel
+
+map4=new mr.Map(document.getElementById("bild4"));
+var center=new mr.Point(48.2,15.6);
+map4.centerAndZoom(center,12); //12 = zoomlevel
+}
+</script>
+</head>
+<body onload="init()">
+<div id="bild1"  class="image"> </div>
+<div id="bild2"  class="image"> </div>
+<div id="bild3"  class="image"> </div>
+<div id="bild4"  class="image"> </div>
+ 
+</body>
+</html>

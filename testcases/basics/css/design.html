@@ -1,0 +1,86 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<style type="text/css">
+.map{
+width:200px;
+height:142px;
+float:left;
+
+margin-right:16px;
+margin-bottom:16px;
+border:1px solid black;
+}
+
+#map2{
+float:right;
+margin-left:16px;
+margin-right:0px;
+}
+
+#content{
+	margin-top:50px;
+	margin-left:100px;
+	width:500px;
+	border:3px solid #efefef;
+	padding:20px;
+	padding-bottom:50px;
+text-align: justify;
+	padding-left:80px;
+	padding-right:80px;
+
+border:1px solid #efefef;
+background-color:white;
+-moz-box-shadow: 1px 1px 14px #dfdfdf;
+-webkit-box-shadow: 1px 1px 14px #dfdfdf;
+box-shadow: 1px 1px 14px #dfdfdf;
+}
+</style>
+<script type="text/javascript" src="../../js/khtml.js"> </script>
+<script type="text/javascript">
+
+var mr=new Object(khtml.maplib);
+var map=null; //global map object
+var map2=null; //global map object
+
+function init(){
+map=new mr.Map(document.getElementById("map"));
+var center=new mr.Point(48.2,15.6);
+map.centerAndZoom(center,12); //12 = zoomlevel
+
+
+map2=new mr.Map(document.getElementById("map2"));
+var center2=new mr.Point(48.2,15.6);
+map2.centerAndZoom(center2,7); //12 = zoomlevel
+}
+</script>
+</head>
+<body onload="init()">
+<div id="content">
+<h1>float design</h1>
+<p>
+Diese Karte wird vom Text umflossen. Das kann man per CSS und float:right. machen.
+Diese Karte wird vom Text umflossen. Das kann man per CSS und float:right. machen.
+Diese Karte wird vom Text umflossen. Das kann man per CSS und float:right. machen.
+Diese Karte wird vom Text umflossen. Das kann man per CSS und float:right. machen.
+</p>
+<div class="map" id="map2"> </div>
+<p>
+Diese Karte wird vom Text umflossen. Das kann man per CSS und float:right. machen.
+Diese Karte wird vom Text umflossen. Das kann man per CSS und float:right. machen.
+Diese Karte wird vom Text umflossen. Das kann man per CSS und float:right. machen.
+Diese Karte wird vom Text umflossen. Das kann man per CSS und float:right. machen.
+Diese Karte wird vom Text umflossen. Das kann man per CSS und float:right. machen.
+</p>
+<div class="map" id="map"> </div>
+<p>
+Diese Karte wird vom Text umflossen. Das kann man per CSS und float:right. machen.
+Diese Karte wird vom Text umflossen. Das kann man per CSS und float:right. machen.
+Diese Karte wird vom Text umflossen. Das kann man per CSS und float:right. machen.
+Diese Karte wird vom Text umflossen. Das kann man per CSS und float:right. machen.
+Diese Karte wird vom Text umflossen. Das kann man per CSS und float:right. machen.
+</p>
+
+</div> 
+</body>
+</html>

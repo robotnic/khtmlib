@@ -1,0 +1,163 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html>
+<head>
+<style type="text/css">
+html,body{
+margin:0;
+width:100%;
+height:100%;
+font-family:Arial;
+}
+#frame{
+position:absolute;
+top:70px;
+left:200px;
+right:100%;
+bottom:0px;
+width:80%;
+height:180%;
+border:0px solid lightgrey;
+display:block;
+}
+.item{
+border-bottom:1px solid gray;
+}
+.item a{
+color:gray;
+display:block;
+width:100%;
+background-color:white;
+margin:0px;
+padding:2px;
+font-weight:bold;
+text-decoration:none;
+border:1px solid white;
+}
+.item a:hover{
+background-color:black;
+border:1px solid lightgrey;
+color:white;
+}
+.item2 {
+padding-right:20px;
+
+}
+.item2 a{
+color:gray;
+display:block;
+width:100%;
+background-color:white;
+margin:0px;
+padding-left:20px;
+font-weight:bold;
+text-decoration:none;
+border:1px solid white;
+font-size:12px;
+}
+
+.item2 a:hover{
+background-color:black;
+border:1px solid lightgrey;
+color:white;
+}
+
+#selected a{
+color:black;
+
+background-color:yellow;
+
+}
+#header{
+position:absolute;
+top:0px;
+left:0px;
+width:100%;
+height:50px;
+
+-moz-box-shadow: 1px 1px 14px #dfdfdf;
+-webkit-box-shadow: 1px 1px 14px #dfdfdf;
+box-shadow: 1px 1px 14px #dfdfdf;
+}
+
+#navi{
+list-style:none;
+position:absolute;
+padding:0px;
+top:70px;
+left:0px;
+}
+#sourcebutton button{
+position:absolute;
+top:10px;
+right:10px;
+}
+#header h1{
+position:absolute;
+left:70px;
+top:-20px;
+}
+</style>
+<script type="text/javascript">
+function showPage(el){
+	var c=el.parentNode.parentNode.childNodes;
+	
+	for(var i=0; i < c.length; i++){	
+		if(c.item(i).nodeType==1){
+			//c.item(i).className="item";
+			c.item(i).removeAttribute("id");
+		}
+	}
+	el.parentNode.setAttribute("id","selected");
+	var src=el.getAttribute("href");	
+	var href="showsrc.php?file="+src;
+	document.getElementById("sourcebutton").setAttribute("href",href);
+}
+function showSrc(src){
+	var href="showsrc.php?file=src+"+src;
+	document.getElementById("frame").href=href;
+
+}
+</script>
+</head>
+<body>
+<ul id="navi">
+<li class='item'><a href='ui'  onmouseup='showPage(this)' target='frame'>ui</a>  </li><li class='item2'><a href='ui/zoom3.html'  onmouseup='showPage(this)' target='frame'>zoom3.html</a>  </li>
+<li class='item2'><a href='ui/zoom5.html'  onmouseup='showPage(this)' target='frame'>zoom5.html</a>  </li>
+<li class='item2'><a href='ui/zoom4.html'  onmouseup='showPage(this)' target='frame'>zoom4.html</a>  </li>
+<li class='item2'><a href='ui/copyright.html'  onmouseup='showPage(this)' target='frame'>copyright.html</a>  </li>
+<li class='item'><a href='marker'  onmouseup='showPage(this)' target='frame'>marker</a>  </li><li class='item2'><a href='marker/simple.html'  onmouseup='showPage(this)' target='frame'>simple.html</a>  </li>
+<li class='item2'><a href='marker/animatedMarkers'  onmouseup='showPage(this)' target='frame'>animatedMarkers</a>  </li>
+<li class='item'><a href='base'  onmouseup='showPage(this)' target='frame'>base</a>  </li><li class='item2'><a href='base/simple.html'  onmouseup='showPage(this)' target='frame'>simple.html</a>  </li>
+<li class='item2'><a href='base/callback.html'  onmouseup='showPage(this)' target='frame'>callback.html</a>  </li>
+<li class='item2'><a href='base/bounds.html'  onmouseup='showPage(this)' target='frame'>bounds.html</a>  </li>
+<li class='item2'><a href='base/fullscreen.html'  onmouseup='showPage(this)' target='frame'>fullscreen.html</a>  </li>
+<li class='item2'><a href='base/randommap.html'  onmouseup='showPage(this)' target='frame'>randommap.html</a>  </li>
+<li class='item2'><a href='base/smoothzoom.html'  onmouseup='showPage(this)' target='frame'>smoothzoom.html</a>  </li>
+<li class='item'><a href='animation'  onmouseup='showPage(this)' target='frame'>animation</a>  </li><li class='item2'><a href='animation/move.html'  onmouseup='showPage(this)' target='frame'>move.html</a>  </li>
+<li class='item2'><a href='animation/zoom_resize.html'  onmouseup='showPage(this)' target='frame'>zoom_resize.html</a>  </li>
+<li class='item'><a href='css'  onmouseup='showPage(this)' target='frame'>css</a>  </li><li class='item2'><a href='css/mapinmap.html'  onmouseup='showPage(this)' target='frame'>mapinmap.html</a>  </li>
+<li class='item2'><a href='css/margin_padding'  onmouseup='showPage(this)' target='frame'>margin_padding</a>  </li>
+<li class='item2'><a href='css/design3.html'  onmouseup='showPage(this)' target='frame'>design3.html</a>  </li>
+<li class='item2'><a href='css/design2.html'  onmouseup='showPage(this)' target='frame'>design2.html</a>  </li>
+<li class='item2'><a href='css/design.html'  onmouseup='showPage(this)' target='frame'>design.html</a>  </li>
+<li class='item'><a href='tiles'  onmouseup='showPage(this)' target='frame'>tiles</a>  </li><li class='item2'><a href='tiles/openseamap.html'  onmouseup='showPage(this)' target='frame'>openseamap.html</a>  </li>
+<li class='item2'><a href='tiles/i18n.html'  onmouseup='showPage(this)' target='frame'>i18n.html</a>  </li>
+<li class='item2'><a href='tiles/openseaAndShade.html'  onmouseup='showPage(this)' target='frame'>openseaAndShade.html</a>  </li>
+<li class='item2'><a href='tiles/cyclemap.html'  onmouseup='showPage(this)' target='frame'>cyclemap.html</a>  </li>
+<li class='item2'><a href='tiles/labels.html'  onmouseup='showPage(this)' target='frame'>labels.html</a>  </li>
+<li class='item'><a href='first.html'  onmouseup='showPage(this)' target='frame'>first.html</a>  </li></ul>
+<div id="header">
+<img src="favicon.png"/>
+<h1>
+khtml.maplib API examples
+</h1>
+<a href="#" id="sourcebutton" target="frame">
+<button id="sourcebutton">source</button>
+</a>
+</div>
+<iframe id="frame" name="frame" src="first.html">
+
+</iframe>
+</body>
+</html>

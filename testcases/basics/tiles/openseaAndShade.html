@@ -1,0 +1,47 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<style type="text/css">
+html,
+#map{
+width:400px;
+height:300px;
+}
+</style>
+<script type="text/javascript" src="../../js/khtml.js"> </script>
+<script type="text/javascript">
+
+var mr=new Object(khtml.maplib);
+
+function init(){
+	var map=new mr.Map(document.getElementById("map"));  //dom element
+	map.addTilesOverlay({
+		  maxzoom:18,
+		  minzoom:4,
+		  src:function(x,y,z){
+			     return "http://tiles.openseamap.org/seamark/"+z+"/"+x+"/"+y+".png";
+		  },
+		  copyright:"openseamap"
+	})
+	map.addTilesOverlay({
+		  maxzoom:18,
+		  minzoom:4,
+		  src:function(x,y,z){
+			     //return "http://blabla.openseamap.org/seamark/"+z+"/"+x+"/"+y+".png";
+			return "http://toolserver.org/~cmarqu/hill/"+z+"/"+x+"/"+y+".png";
+		  },
+		  copyright:"shade"
+	})
+
+
+	var center=new mr.Point( 48.18352,16.29521);
+	map.centerAndZoom(center,11); //12 = zoomlevel
+}
+</script>
+</head>
+<body onload="init()">
+<h1>Openseamap</h1>
+<div id="map"> </div>
+ 
+</body>
+</html>

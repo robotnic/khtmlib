@@ -1,0 +1,40 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<style type="text/css">
+html,
+#map{
+width:400px;
+height:300px;
+}
+</style>
+<script type="text/javascript" src="../../js/khtml.js"> </script>
+<script type="text/javascript">
+
+var mr=new Object(khtml.maplib);
+
+function init(){
+	var map=new mr.Map(document.getElementById("map"));  //dom element
+	map.tiles({
+                  maxzoom:17,
+                  minzoom:1,
+                  src:function(x,y,z){
+                     //return "http://andy.sandbox.cloudmade.com/tiles/cycle/"+z+"/"+x+"/"+y+".png";
+			return	"http://a.www.toolserver.org/tiles/osm-labels-de/"+z+"/"+x+"/"+y+".png";
+                  },
+                  copyright:"osm"
+        });
+
+
+
+	var center=new mr.Point( 54.18352,12.09521);
+	map.centerAndZoom(center,4); //12 = zoomlevel
+}
+</script>
+</head>
+<body onload="init()">
+<h1>Openseamap</h1>
+<div id="map"> </div>
+ 
+</body>
+</html>

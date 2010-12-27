@@ -1,0 +1,94 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<style type="text/css">
+#map{
+width:400px;
+height:300px;
+position:absolute;
+top:200px;
+left:100px;
+padding:5px;
+border:1px solid #efefef;
+background-color:white;
+-moz-box-shadow: 1px 1px 14px #dfdfdf;
+-webkit-box-shadow: 1px 1px 14px #dfdfdf;
+box-shadow: 1px 1px 14px #dfdfdf;
+
+}
+</style>
+<script type="text/javascript" src="../../js/khtml.js"> </script>
+<script type="text/javascript">
+
+
+var mr=new Object(khtml.maplib);
+var map=null; //global map object
+
+var fhstp=new mr.Point(48.21379182397267,15.63226605436995);
+
+function init(){
+	map=new mr.Map(document.getElementById("map"));
+	var center=new mr.Point(48.2,15.6);
+	map.centerAndZoom(center,12); //12 = zoomlevel
+	animations();
+}
+
+function animations(){
+	document.getElementById("map").style.top="140px";
+	document.getElementById("map").style.left="10px";
+	document.getElementById("map").style.width="400px";
+	map.redraw();
+	zoomAni();
+	setTimeout("zoomAni()",4000);
+	setTimeout("zoomAni()",8000);
+	setTimeout("zoomAni()",12000);
+
+
+	setTimeout("resize()",5000);
+	setTimeout("move()",10000);
+	setTimeout("animations()",16000);
+}
+
+function zoomAni(){
+	for(var i=10; i <=180; i++){
+		var z=i/10;
+		var cmd="map.centerAndZoom(fhstp,"+z+")";
+		setTimeout(cmd,(i -10)*20);
+	}
+}
+
+function resize(){
+	for(var i=00; i <= 100;i++){
+		var cmd="resizeIt("+i+")";
+		setTimeout(cmd,i*20);	
+	}
+}
+
+function resizeIt(i){
+	document.getElementById("map").style.width=(400+i*3)+"px";
+	map.redraw();
+}
+
+function move(){
+	for(var i=00; i < 100;i++){
+		var cmd="moveIt("+i+")";
+		setTimeout(cmd,i*20);	
+	}
+}
+
+function moveIt(i){
+	document.getElementById("map").style.top=(50+i*3)+"px";
+	document.getElementById("map").style.left=(60+i*3)+"px";
+	map.redraw();
+}
+
+
+</script>
+</head>
+<body onload="init()">
+<h1>Frame based Animations</h1>
+<p>The map libaray should automaticaly drop frames if the load is too high to prevent stall. Before loosing animation, slow overlays are dropped. Firefox has weak support for that.
+<div id="map"> </div>
+ 
+</body>
+</html>

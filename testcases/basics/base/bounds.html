@@ -1,0 +1,32 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<style type="text/css">
+#map{
+width:400px;
+height:300px;
+}
+</style>
+<script type="text/javascript" src="../../js/khtml.js"> </script>
+<script type="text/javascript">
+
+var mr=new Object(khtml.maplib);
+var map=null; //global map object
+
+function init(){
+
+var map=new mr.Map(document.getElementById("map"));
+var p1=new mr.Point(-70,-180);
+var p2=new mr.Point(70,180);
+var b=new mr.Bounds(p1,p2);
+map.bounds(b);
+
+
+}
+</script>
+</head>
+<body onload="init()">
+<div id="map"> </div>
+ 
+</body>
+</html>
