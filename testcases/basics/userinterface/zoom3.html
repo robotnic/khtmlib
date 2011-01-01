@@ -1,0 +1,91 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<style type="text/css">
+body,html{
+margin:0px;
+}
+#map{
+position:absolute;
+top:150px;
+left:50px;
+width:400px;
+height:300px;
+}
+#scrollbar{
+position:absolute;
+top:00px;
+left:-1px;
+border-right:1px solid lighgrey;
+}
+#scrollhandle{
+position:absolute;
+top:00px;
+margin-left:0px;
+width:30px;
+height:30px;
+background-color:yellow;
+}
+#coords{
+position:absolute;
+top:30px;
+left:500px;
+}
+</style>
+<script type="text/javascript" src="../../../js/khtml.js"> </script>
+<script type="text/javascript" src="../../../js/zoombar.js"> </script>
+<script type="text/javascript">
+
+var mr=new Object(khtml.maplib);
+var map=null; //global map object
+
+function init(){
+map=new mr.Map(document.getElementById("map"));
+var center=new mr.Point(48.2,15.6);
+map.centerAndZoom(center,12); //12 = zoomlevel
+var zoominger=new mr.ZoomUI();
+map.addOverlay(zoominger);
+
+map.addCallbackFunction(showCoordinates);
+showCoordinates();
+}
+
+function showCoordinates(evt){
+        var lat=map.center().lat();
+        var lng=map.center().lng();
+        var zoom=map.zoom();
+        document.getElementById("lat").firstChild.nodeValue=lat;
+        document.getElementById("lng").firstChild.nodeValue=lng;
+        document.getElementById("zoom").firstChild.nodeValue=zoom;
+
+        var p=map.mouseToLatLng(evt);
+        document.getElementById("mouselat").firstChild.nodeValue=p.lat()+" ";
+        document.getElementById("mouselng").firstChild.nodeValue=p.lng()+" ";
+        
+}
+
+</script>
+</head>
+<body onload="init()">
+<h1>Sehr oft findet man ein User Interface auf Web-Karten.</h1>
+
+<div id="map"> 
+<div class="zoombar" style="position:absolute;width:30px;height:221px;overflow:hidden">
+<div class="scrollhandle" style="position:absolute;left:0px;top:0px;width:30px;height:300px;background-color:yellow"> </div>
+<img class="scrollbar " src="scrollbar.png" style="position:absolute;left:0px;top:00px;" />
+</div>
+</div>
+
+
+<div id="coords">
+<h4>Center of Map</h4>
+<div>lat: <span id="lat">0</span></div>
+<div>lng: <span id="lng">0</span></div>
+<div>zoom: <span id="zoom">0</span></div>
+<h4>Coordinats at mouse position</h4>
+<div>lat: <span id="mouselat">0</span></div>
+<div>lng: <span id="mouselng">0</span></div>
+</div>
+ 
+</body>
+</html>

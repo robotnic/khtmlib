@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg"><head>
+<title>scroller</title>
+<style type="text/css">
+#svg{
+position:absolute;
+top:0px;
+left:0px;
+}
+
+</style>
+<script type="text/javascript">
+
+var svgns="http://www.w3.org/2000/svg";
+function init(){
+	for(var i=0; i &lt; 19;i++){
+		var rect=document.createElementNS(svgns,"rect");
+		if(i/5==Math.floor(i/5)){
+			width=25;
+			var t=i;
+			var text=document.createElementNS(svgns,"text");
+			text.appendChild(document.createTextNode(i ));
+			document.getElementById("steps").appendChild(text);
+			text.setAttribute("x",8);
+			text.setAttribute("y",-10*i-4);
+		}else{
+			width=5;
+			var t="";
+		}
+		rect.setAttribute("width",width);
+		rect.setAttribute("height",1);
+		rect.setAttribute("y",-10 *i);
+		document.getElementById("steps").appendChild(rect);
+
+	}
+
+
+}
+
+function zoom(evt){
+	var target=document.getElementById("zoominger");
+	var m=evt.clientY ;
+	var y=m ;	
+	var h=190-y;
+	target.setAttribute("y",y);
+	target.setAttribute("height",h);
+}
+
+</script>
+</head>
+<body onload="init()">
+<svg id="svg" xmlns="http://www.w3.org/2000/svg" width="1000px" height="600px">
+<g id="steps" transform="translate(0,190)">
+
+<text x="8" y="-4">0</text><rect width="25" height="1" y="0"></rect><rect width="5" height="1" y="-10"></rect><rect width="5" height="1" y="-20"></rect><rect width="5" height="1" y="-30"></rect><rect width="5" height="1" y="-40"></rect><text x="8" y="-54">5</text><rect width="25" height="1" y="-50"></rect><rect width="5" height="1" y="-60"></rect><rect width="5" height="1" y="-70"></rect><rect width="5" height="1" y="-80"></rect><rect width="5" height="1" y="-90"></rect><text x="8" y="-104">10</text><rect width="25" height="1" y="-100"></rect><rect width="5" height="1" y="-110"></rect><rect width="5" height="1" y="-120"></rect><rect width="5" height="1" y="-130"></rect><rect width="5" height="1" y="-140"></rect><text x="8" y="-154">15</text><rect width="25" height="1" y="-150"></rect><rect width="5" height="1" y="-160"></rect><rect width="5" height="1" y="-170"></rect><rect width="5" height="1" y="-180"></rect></g>
+<g onmousedown="zoom(event)" onmousemove="zoom(event)">
+<rect x="0" y="0" width="30" height="190" fill="black" stroke="none" opacity="0.05"></rect>
+<rect id="zoominger" x="0" y="162" width="30" height="28" fill="black" strok="black" opacity="0.1"></rect>
+</g>
+</svg>
+</svg>
+
+
+
+

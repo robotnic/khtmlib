@@ -3,8 +3,8 @@
 <head>
 <style type="text/css">
 #map{
-width:400px;
-height:300px;
+width:700px;
+height:400px;
 }
 </style>
 <script type="text/javascript" src="../../../js/khtml.js"> </script>
@@ -13,25 +13,32 @@ height:300px;
 
 var mr=new Object(khtml.maplib);
 var map=null; //global map object
+var map2=null; //global map object
 
 function init(){
 map=new mr.Map(document.getElementById("map"));
 var center=new mr.Point(48.2,15.6);
 map.centerAndZoom(center,12); //12 = zoomlevel
 
-var img=document.createElement("img");
-img.setAttribute("src","http://mk.mapchannels.com/iimm2-blue.png");
+var markermap=document.createElement("div");
+markermap.style.width="100px";
+markermap.style.height="100px";
+markermap.style.border="3px solid gray";
 
 var p=new mr.Point(48.21,15.602);
-var marker=new mr.Marker(center,img,{dx:"-16px",dy:"-32px"});
+var marker=new mr.Marker(center,markermap,{dx:"-50px",dy:"-50px"});
 map.addOverlay(marker);
-marker.makeMoveable();
+
+
+map2=new mr.Map(markermap);
+var center=new mr.Point(48.2,15.6);
+map2.centerAndZoom(center,14); //12 = zoomlevel
 }
 </script>
 </head>
 <body onload="init()">
-<h4>Simple Marker</h4>
-Markers are normal html things. They are mounted to GPS (wgs84) coordinates. Markers are normal html dom elements.
+<h4>Map as Marker</h4>
+The marker is a complete slippy map.
 <div id="map"> </div>
  
 </body>

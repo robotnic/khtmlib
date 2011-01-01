@@ -15,6 +15,7 @@ var mr=new Object(khtml.maplib);
 
 function init(){
 	var map=new mr.Map(document.getElementById("map"));  //dom element
+/* see karte
 	map.addTilesOverlay({
 		  maxzoom:18,
 		  minzoom:4,
@@ -23,33 +24,33 @@ function init(){
 		  },
 		  copyright:"openseamap"
 	})
+*/
 	map.addTilesOverlay({
 		  maxzoom:18,
 		  minzoom:4,
 		  src:function(x,y,z){
-//			     return "http://www.openportguide.org/tiles/actual/wind_vector/5/"+z+"/"+x+"/"+y+".png";
-				return "http://www.openportguide.org/tiles/actual/surface_pressure/9/"+z+"/"+x+"/"+y+".png";
+			     //return "http://blabla.openseamap.org/seamark/"+z+"/"+x+"/"+y+".png";
+			return "http://toolserver.org/~cmarqu/hill/"+z+"/"+x+"/"+y+".png";
 		  },
-		  copyright:"openportguide"
+		  copyright:"shade"
 	})
 
 
-	var center=new mr.Point( 54.18352,12.09521);
-	map.centerAndZoom(center,10); //12 = zoomlevel
+	var center=new mr.Point( 48.18352,16.29521);
+	map.centerAndZoom(center,11); //12 = zoomlevel
 }
 </script>
 </head>
 <body onload="init()">
-<h1>Openseamap</h1>
-The wonderful seamap!!<br/>
-One of the coolest OSM  Projects!!!
-<br/>
-<br/>
-Zoom in to see spezial openseamap overlay.
+<h1>Hill Shade</h1>
+This very cool Overlay is provided by:<br/>
+Please email me the copyright conditions.
 <div id="map"> </div>
-<p>The tiles needs better antialiazing.
-No idea how the tiles are generated, but try to user invisible background: alpha=0, transparenzy=nada, white=no, color=no, nothing=yes<br/>
-Antializing = prevent Augenkrebs
-</p> 
+For higher to medium zoom levels it's perfect. For other zoomlevels maybe supercomputer power whould be cool. 
+And the satelite data from twin sats. <br/>
+This map lib is <a href="http://en.wikipedia.org/wiki/GNU_Lesser_General_Public_License">lgpl</a> - feel free to use.
+<br/>
+<br/>
+And please add the holy planet - at least the Himalaya.
 </body>
 </html>

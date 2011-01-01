@@ -1,6 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
 <head>
+ <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/>
 <style type="text/css">
 .map{
 width:200px;
@@ -68,52 +69,48 @@ var map4=null; //global map object
 
 function init(){
 	map=new mr.Map(document.getElementById("map"));
-	var center=new mr.Point(48.2,15.6);
+	var center=new mr.Point(25.008836529404626,54.98936176300052);
 	map.centerAndZoom(center,12); //12 = zoomlevel
 
 
 	map2=new mr.Map(document.getElementById("map2"));
-	var center2=new mr.Point(48.2,15.6);
-	map2.centerAndZoom(center2,7); 
+	var center2=new mr.Point(13.440882512194419,103.89331368498625);
+	map2.centerAndZoom(center2,10); 
 
 
 	map3=new mr.Map(document.getElementById("map3"));
-	var center3=new mr.Point(48.2,15.6);
-	map3.centerAndZoom(center3,3);
+	var center3=new mr.Point(13.963831996963368,105.91974561273895);
+	map3.centerAndZoom(center3,18);
 
 
 	map4=new mr.Map(document.getElementById("map4"));
-	var center4=new mr.Point(48.2,15.6);
-	map4.centerAndZoom(center4,15);
+	var center4=new mr.Point(13.963831996963368,105.91974561273895);
+	map4.centerAndZoom(center4,12);
 }
 </script>
 </head>
 <body onload="init()">
 <div id="content">
 <div id="c1" class="content">
-<h1>Map and float design</h1>
+<h1>Small maps are fast!!!</h1>
 Try to resize the browser window.
 <p>
-Diese Karte wird vom Text umflossen. Das kann man per CSS und float:right. machen.
-Diese Karte wird vom Text umflossen. Das kann man per CSS und float:right. machen.
-Diese Karte wird vom Text umflossen. Das kann man per CSS und float:right. machen.
-Diese Karte wird vom Text umflossen. Das kann man per CSS und float:right. machen.
+The map tiles are positioned absolute.
+To have absolute positioning on float design is not easy.
+It is very likely to have problems here.
+The border width makes problems for example.
+quirx, standard, browser - bring testcases.
 </p>
 <div class="map" id="map2"> </div>
 <p>
-Diese Karte wird vom Text umflossen. Das kann man per CSS und float:right. machen.
-Diese Karte wird vom Text umflossen. Das kann man per CSS und float:right. machen.
-Diese Karte wird vom Text umflossen. Das kann man per CSS und float:right. machen.
-Diese Karte wird vom Text umflossen. Das kann man per CSS und float:right. machen.
-Diese Karte wird vom Text umflossen. Das kann man per CSS und float:right. machen.
+Auf der nächsten Karte haben wir ein bild von der Kambodschanischen Provinz Seam Reap.
+Wenn man hinein zoomt, kann man deutlich Angkor Wat sehen.
+Sicher eines der Ziele die man eher in näherer Zukunft inspizieren sollte.
 </p>
+<h4>Die Palmeninsel!</h4>
 <div class="map" id="map"> </div>
 <p>
-Diese Karte wird vom Text umflossen. Das kann man per CSS und float:right. machen.
-Diese Karte wird vom Text umflossen. Das kann man per CSS und float:right. machen.
-Diese Karte wird vom Text umflossen. Das kann man per CSS und float:right. machen.
-Diese Karte wird vom Text umflossen. Das kann man per CSS und float:right. machen.
-Diese Karte wird vom Text umflossen. Das kann man per CSS und float:right. machen.
+Für Kartographen ein gefundenes Fressen. 
 </p>
 </div>
 <div id="c2" class="content">
