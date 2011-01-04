@@ -41,7 +41,11 @@ khtml.maplib.ZoomUI=function(){
         }
 
         this.down=function(evt){
-                evt.preventDefault();
+		if (evt.preventDefault) {
+		    evt.preventDefault(); // The W3C DOM way
+		} else {
+		    evt.returnValue = false; // The IE way
+		}
                 this.moving=true;
                 var y=this.themap.pageY(evt);
                 var z=(22-y/10);
@@ -50,7 +54,11 @@ khtml.maplib.ZoomUI=function(){
                 if (evt.stopPropagation) evt.stopPropagation();
         }
         this.move=function(evt){
-                evt.preventDefault();
+		if (evt.preventDefault) {
+		    evt.preventDefault(); // The W3C DOM way
+		} else {
+		    evt.returnValue = false; // The IE way
+		}
                 if(this.moving){
                         var y=this.themap.pageY(evt);
                         var z=(22-y/10);
@@ -61,7 +69,11 @@ khtml.maplib.ZoomUI=function(){
         
         }
         this.up=function(evt){
-                evt.preventDefault();
+		if (evt.preventDefault) {
+		    evt.preventDefault(); // The W3C DOM way
+		} else {
+		    evt.returnValue = false; // The IE way
+		}
                 this.moving=false;
                 evt.cancelBubble = true;
                 if (evt.stopPropagation) evt.stopPropagation();
