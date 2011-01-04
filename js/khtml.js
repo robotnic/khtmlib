@@ -16,8 +16,8 @@ khtml.maplib.getVersion=function(){
 
 
 khtml.maplib.Point=function(lat,lng){
-                this.latitude=lat;
-                this.longitude=lng;
+                this.latitude=parseFloat(lat);
+                this.longitude=parseFloat(lng);
                 this.lat=function(lat){
                         if(lat){
                                 this.latitude=lat;
@@ -38,23 +38,23 @@ khtml.maplib.Point=function(lat,lng){
 // An area defined by 2 Points
 //
 
-khtml.maplib.Bounds=function(sw, ne) {
-    this.sw = sw;
-    this.ne = ne;
-    this.center = new khtml.maplib.Point((sw.lat() + ne.lat()) / 2, (sw.lng() + ne.lng()) / 2);
-    this.getSW = function () {
-        return this.sw;
+khtml.maplib.Bounds=function(southwest, northeast) {
+    this.southwest = southwest;
+    this.northeast = northeast;
+    this.center = new khtml.maplib.Point((southwest.lat() + northeast.lat()) / 2, (southwest.lng() + northeast.lng()) / 2);
+    this.sw = function () {
+        return this.southwest;
     }
-    this.getNE = function () {
-        return this.ne;
+    this.ne = function () {
+        return this.northeast;
     }
     this.getCenter = function () {
         return this.center;
     }
 
     this.getOpticalCenter = function (themap) {
-        var swXY = themap.latlngToXY(this.sw);
-        var neXY = themap.latlngToXY(this.ne);
+        var swXY = themap.latlngToXY(this.southwest);
+        var neXY = themap.latlngToXY(this.northeast);
         var centerX = Math.abs(swXY["x"] + neXY["x"]) / 2;
         var centerY = Math.abs(swXY["y"] + neXY["y"]) / 2;
         var centerLatLng = themap.XYTolatlng(centerX, centerY);
@@ -62,8 +62,8 @@ khtml.maplib.Bounds=function(sw, ne) {
     }
     this.getZoomLevel = function (themap) {
         origZoom = themap.getZoom();
-        var swXY = themap.latlngToXY(this.sw);
-        var neXY = themap.latlngToXY(this.ne);
+        var swXY = themap.latlngToXY(this.southwest);
+        var neXY = themap.latlngToXY(this.northeast);
         var dx = Math.abs(swXY["x"] - neXY["x"]);
         var dy = Math.abs(swXY["y"] - neXY["y"]);
         var zoomX = themap.width / dx;
@@ -77,11 +77,11 @@ khtml.maplib.Bounds=function(sw, ne) {
     }
 
     this.getDistance = function () {
-        return distance(this.sw.lat(), this.sw.lng(), this.ne.lat(), this.ne.lng());
+        return distance(this.southwest.lat(), this.southwest.lng(), this.northeast.lat(), this.northeast.lng());
     }
 
     this.getDistanceText = function () {
-        var d = parseFloat(distance(this.sw.lat(), this.sw.lng(), this.ne.lat(), this.ne.lng()));
+        var d = parseFloat(distance(this.southwest.lat(), this.southwest.lng(), this.northeast.lat(), this.northeast.lng()));
 
         if (d < 1000) {
             return Math.round(d) + "m";
@@ -100,8 +100,8 @@ khtml.maplib.Bounds=function(sw, ne) {
     }
 
     this.getInnerRadius = function () {
-        var w = distance(this.center.lat(), this.sw.lng(), this.center.lat(), this.ne.lng());
-        var h = distance(this.sw.lat(), this.center.lng(), this.ne.lat(), this.center.lng());
+        var w = distance(this.center.lat(), this.southwest.lng(), this.center.lat(), this.northeast.lng());
+        var h = distance(this.southwest.lat(), this.center.lng(), this.northeast.lat(), this.center.lng());
         if (w > h) {
             return h / 2;
         } else {
@@ -145,6 +145,9 @@ khtml.maplib.Map=function(map) {
     }
     this.renderOverlays = function () {
         this.overlayDiv.style.display = "";
+	//this.overlayClone=this.overlayDiv.cloneNode(true);
+	//this.clone.appendChild(this.overlayClone);
+	
         //if(!this.internetExplorer){
         this.svg.style.display = "";
         //}
@@ -153,12 +156,12 @@ khtml.maplib.Map=function(map) {
         for (obj in this.overlays) {
 		if(i==0){
 			try{
-			this.overlays[obj].clear(that);
+			//this.overlays[obj].clear(that);
 			}catch(e){};
 			i++;
 		}
 		try{
-			this.overlays[obj].render(that);
+			this.overlays[obj].render();
 		}catch(e){};
         }
     }
@@ -174,6 +177,14 @@ khtml.maplib.Map=function(map) {
         while (this.overlays.length > 0) {
             var overlay = this.overlays.pop();
             overlay.clear();
+        }
+    }
+
+    this.stopRenderOverlays = function () {
+       for (obj in this.overlays) {
+		if(typeof(this.overlays[obj].cancel)=="function"){
+		    this.overlays[obj].cancel();
+		}
         }
     }
 
@@ -868,7 +879,7 @@ khtml.maplib.Map=function(map) {
             zoom = this.tileSource.maxzoom;
         }
         if (zoom < this.tileSource.minzoom) {
-            zoom = this.tileSource.mingzoom;
+            zoom = this.tileSource.minzoom;
         }
 
         this.record();
@@ -1024,8 +1035,8 @@ khtml.maplib.Map=function(map) {
         //the setbounds should be a mathematical formula and not guessing around.
         //if you know this formula pease add it here.
         //this.getSize();
-        var p1 = b.getSW();
-        var p2 = b.getNE();
+        var p1 = b.sw();
+        var p2 = b.ne();
 
         var minlat = p1.lat();
         var maxlat = p2.lat();
@@ -1303,8 +1314,9 @@ It has the same parameters as the "draw" method, but no "intZoom"
     this.layerDrawLastFrame = null;
     this.doTheOverlayes=true;
     this.finalDraw=false;
-    this.lastZoom=null;
+    this.layerOldZoom=0;
     this.layer = function (map, lat, lng, moveX, moveY, zoom) {
+	this.stopRenderOverlays();
 	if(!zoom){
 		var zoom=this.getZoom();
 	}
@@ -1321,7 +1333,7 @@ It has the same parameters as the "draw" method, but no "intZoom"
 			that.finalDraw=true;
                     that.layer(map, lat, lng, moveX, moveY, zoom);
                 };
-                this.layerDrawLastFrame = window.setTimeout(tempFunction, 100);
+                this.layerDrawLastFrame = window.setTimeout(tempFunction, 200);
 
                 if (this.blocked){
 			return;
@@ -1448,36 +1460,29 @@ It has the same parameters as the "draw" method, but no "intZoom"
         if(this.delayedOverlay){
                 window.clearTimeout(this.delayedOverlay);
         }
-        if(this.doTheOverlayes){
-                var startTime=new Date();
-                this.renderOverlays();
-                var duration=(new Date() - startTime);
-                if(duration > 50){
-                        this.doTheOverlayes=false;
-                }else{
-                        this.doTheOverlayes=true;
+		
+		//console.log("normalize",this.oldZoom,this.zoom(),this.moveX,this.moveY);
+		if(this.doTheOverlayes || this.finalDraw || this.layerOldZoom==this.zoom()){
+			var startTime=new Date();
+			this.lastDX=this.moveX;
+			this.lastDY=this.moveY;
+			this.renderOverlays();
+			this.layerOldZoom=this.zoom();	
+			var duration=(new Date() - startTime);
+			if(duration > 10){
+				this.doTheOverlayes=false;
+			}else{
+				this.doTheOverlayes=true;
+			}
+		}else{
+			this.hideOverlays();
 		}
-        }else{
-                this.hideOverlays();
-            var that = this;
-            var func = function () {
-                //console.log("render o");
-                //that.doTheOverlayes=true;
-                that.renderOverlays();
-            };
-            this.delayedOverlay=window.setTimeout(func, 200);
-
-        }
-
-
-        //firefox cheats a little bit and needs a time penalty
-     //   if (!this.css3d) {
+     
             var that = this;
             var func = function () {
                 that.blocked = false;
             };
             window.setTimeout(func, 20);
-    //    }
 	    this.finalDraw=false;
     }
 
@@ -2145,7 +2150,11 @@ It has the same parameters as the "draw" method, but no "intZoom"
 			this.loadInfoDiv.style.display="none";			
 		}else{
 			this.loadInfoDiv.style.display="";			
-			this.loadInfoDiv.innerHTML="Images to load: "+missing; //+"/"+total;  //for ie an innerHTML
+			while(this.loadInfoDiv.firstChild){
+				this.loadInfoDiv.removeChild(this.loadInfoDiv.firstChild);
+			}
+			var tn=document.createTextNode(missing+" images to load");
+			this.loadInfoDiv.appendChild(tn);
 		}
     }
 
@@ -2231,7 +2240,7 @@ It has the same parameters as the "draw" method, but no "intZoom"
     this.clone = map.cloneNode(true); //clone is the same as the map div, but absolute positioned
     this.clone = document.createElement("div");
     this.clone.removeAttribute("id");
-    this.clone.style.overflow = "hidden";
+//    this.clone.style.overflow = "hidden";
     if (map.firstChild) {
         map.insertBefore(this.clone, map.firstChild);
     } else {
@@ -2243,7 +2252,7 @@ It has the same parameters as the "draw" method, but no "intZoom"
     this.map.style.position = "absolute";
     this.clone.appendChild(this.map);
     //this.getSize();
-    this.clone.style.overflow = "hidden";
+
     this.setMapPosition();
 
     if (this.svgSupport) {
@@ -2260,10 +2269,11 @@ It has the same parameters as the "draw" method, but no "intZoom"
 
     //div for markers
     this.overlayDiv = document.createElement("div");
-    this.overlayDiv.style.width = "100%";
-    this.overlayDiv.style.height = "100%";
+    //this.overlayDiv.style.width = "100%";
+    //this.overlayDiv.style.height = "100%";
     this.overlayDiv.style.position = "absolute";
-    this.overlayDiv.style.overflow = "hidden";
+    //this.overlayDiv.style.overflow = "hidden";
+    //this.overlayDiv.style.border = "1px solid black";
     this.clone.appendChild(this.overlayDiv);
 
     //should be bigger than screen
