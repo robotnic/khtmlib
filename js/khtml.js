@@ -695,17 +695,22 @@ khtml.maplib.Map=function(map) {
         window.setTimeout(tempFunction, 20);
     }
 
-    this.digizoomblocked=false
+    this.digizoomblocked=false;
+    this.digizoomblockedTimeout=null;
     this.digizoom=function(mousex,mousey,delta){
+	if(this.digizoomblockedTimeout){
+		clearTimeout(this.digizoomblockedTimeout);
+	}
 	var that=this;	
 	if(this.digizoomblocked){
 		return;
 	}
-	that.digizoomblocked = true;
+	
         var func = function () {
                 that.digizoomblocked = false;
         };
-	setTimeout(func,500);
+	this.digizoomblockedTimeout=setTimeout(func,2000);
+	this.digizoomblocked = true;
 
 	if(delta >0){
 		var zoomD = Math.ceil(0.01+ this.getZoom() - this.getIntZoom());
@@ -853,7 +858,7 @@ khtml.maplib.Map=function(map) {
 	//console.log(timeDelta);
 	this.autoZoomStartTime=now;	
 
-	if(timeDelta <80 || zoomGap){
+	if(timeDelta <60 || zoomGap){
 	if(zoom >=this.tileSource.minzoom && zoom <= this.tileSource.maxzoom){
 		this.moveX = this.moveX + dx / faktor;
 		this.moveY = this.moveY + dy / faktor;
@@ -879,8 +884,10 @@ khtml.maplib.Map=function(map) {
             var tempFunction = function () {
                 that.autoZoomIn(x, y, newz)
             };
-            this.autoZoomInTimeout = window.setTimeout(tempFunction, 50);
-        } 
+            this.autoZoomInTimeout = window.setTimeout(tempFunction, 40);
+        }else{ 
+		this.digizoomblocked=false;
+	}
 
     }
 
@@ -1447,6 +1454,13 @@ It has the same parameters as the "draw" method, but no "intZoom"
 		}
 
         }
+	//preload for zoom out
+
+        if (intZoom == this.visibleZoom) {
+		    this.draw(this.map, lat, lng, moveX, moveY, this.visibleZoom -1, zoom ,this.tileSource.src);
+		    this.layers[this.visibleZoom -1]["layerDiv"].style.visibility="hidden";
+	}
+	
 	/*
 	if(this.finalDraw){
 		for(var i=0; i < this.tileOverlays.length;i++){
@@ -1592,6 +1606,7 @@ It has the same parameters as the "draw" method, but no "intZoom"
             var lngDelta = lng - this.layers[intZoom]["startLng"];
         }
         layerDiv.style.visibility = "hidden";
+        layerDiv.style.opacity=1;
 
         //if the map is moved with drag/drop, the moveX,moveY gives the movement in Pixel (not degree as lat/lng)
         //here the real values of lat, lng are caculated
@@ -1895,10 +1910,31 @@ It has the same parameters as the "draw" method, but no "intZoom"
     //https://bugs.webkit.org/show_bug.cgi?id=6656
     //For Firefox it really brings speed
     //	
+	this.fadeOutTimeout=null;
+	this.fadeOut=function(div,alpha){
+		if(this.fadeOutTimeout){
+			clearTimeout(this.fadeOutTimeout);
+		}
+		if(alpha >0){
+			div.style.opacity=alpha;
+			div.style.filter = "alpha( opacity="+(alpha*100)+" )";
+			var that=this;
+			var tempFunction=function(){
+				that.fadeOut(div,alpha -0.2);
+			}
+			this.fadeOutTimeout=setTimeout(tempFunction, 40);
+
+		}else{
+			div.style.visibility="hidden";
+		}
+		
+	}
     this.hideLayer = function (zoomlevel) {
         if (this.intZoom != zoomlevel) {
             if (this.layers[zoomlevel]) {
-                this.layers[zoomlevel]["layerDiv"].style.visibility = "hidden";
+                //this.layers[zoomlevel]["layerDiv"].style.visibility = "hidden";
+                this.layers[zoomlevel]["layerDiv"].style.opacity=1;
+		this.fadeOut(this.layers[zoomlevel]["layerDiv"],1);
             }
         }
 
