@@ -160,9 +160,9 @@ khtml.maplib.Map=function(map) {
 			}catch(e){};
 			i++;
 		}
-		try{
+		//try{
 			this.overlays[obj].render();
-		}catch(e){};
+		//}catch(e){};
         }
     }
     this.hideOverlays = function () {
@@ -406,7 +406,18 @@ khtml.maplib.Map=function(map) {
         }
     }
 
+    this.doubleclickBlocked=false;
     this.doubleclick = function (evt) {
+        var that=this;
+        if(this.doubleclickBlocked){
+                return;
+        }
+        that.doubleclickBlocked = true;
+        var func = function () {
+                that.doubleclickBlocked = false;
+        };
+	setTimeout(func,500);
+
         var zoom = this.getZoom();
         var zoomD = Math.ceil(0.0001 + this.getZoom()) - zoom;
         this.autoZoomIn(this.pageX(evt), this.pageY(evt), zoomD);
@@ -694,7 +705,7 @@ khtml.maplib.Map=function(map) {
         var func = function () {
                 that.digizoomblocked = false;
         };
-	setTimeout(func,300);
+	setTimeout(func,500);
 
 	if(delta >0){
 		var zoomD = Math.ceil(0.01+ this.getZoom() - this.getIntZoom());
@@ -790,24 +801,34 @@ khtml.maplib.Map=function(map) {
     //
 
     this.autoZoomInTimeout = null;
+    this.autoZoomStartTime = null;
     this.autoZoomIn = function (x, y, z) {
-        //console.log(z);
+        //console.log(x,y,z);
         if (this.autoZoomInTimeout) {
             window.clearTimeout(this.autoZoomInTimeout);
         }
         var stepwidth = 0.10;
+	
         if (z < 0) {
 		stepwidth = -stepwidth
         }
         zoomGap = false;
-        if (Math.abs(z) <= stepwidth) {
+        if (Math.abs(z) <= Math.abs(stepwidth)) {
             zoomGap = true;
         }
         //this.hideOverlays();
         var dzoom = stepwidth;
         var zoom = this.position.zoom + dzoom;
+        zoom = Math.round(zoom * 1000) / 1000;
         if (zoomGap) {
-            zoom = Math.round(zoom);
+		//console.log("---: "+z+":"+zoom);
+			if(z<0){
+			    zoom = Math.floor(zoom);
+			}else{
+			    zoom = Math.ceil(zoom -0.2);
+			}
+		
+		//console.log("---"+zoom);
             //dzoom = z;
             dzoom = zoom - this.position.zoom ;
             //console.log("gap: "+dzoom+" : "+zoom);
@@ -821,37 +842,50 @@ khtml.maplib.Map=function(map) {
         var dx = zoomCenterDeltaX - zoomCenterDeltaX * f;
         var dy = zoomCenterDeltaY - zoomCenterDeltaY * f;
 
-	if(zoom >=1){
+        var that = this;
+
+	var now=new Date().getMilliseconds();
+	if(this.autoZoomStartTime){
+		var timeDelta=now - this.autoZoomStartTime;
+	}else{
+		var timeDelta=0;
+	}
+	//console.log(timeDelta);
+	this.autoZoomStartTime=now;	
+
+	if(timeDelta <80 || zoomGap){
+	if(zoom >=this.tileSource.minzoom && zoom <= this.tileSource.maxzoom){
 		this.moveX = this.moveX + dx / faktor;
 		this.moveY = this.moveY + dy / faktor;
 	}
 
 
         var center = new khtml.maplib.Point(this.lat, this.lng);
-        if (zoom > this.tileSource.maxzoom) zoom = this.tileSource.maxzoom;
+        if (zoom > this.tileSource.maxzoom){
+		 zoom = this.tileSource.maxzoom;
+	}
         if (zoom < this.tileSource.minzoom){
 		 zoom = this.tileSource.minzoom;
 	}
-        zoom = Math.round(zoom * 1000) / 1000;
-        var that = this;
 	var tempFunction=function(){
 		that.setCenter2(center, zoom);
 	}
         setTimeout(tempFunction, 1);
+	}else{
+		//console.log("dropped2");
+	}
         var newz = z - dzoom;
         if (!zoomGap) {
             var tempFunction = function () {
                 that.autoZoomIn(x, y, newz)
             };
-            this.autoZoomInTimeout = window.setTimeout(tempFunction, 20);
-        } else {
-            //this.renderOverlays();
-        }
+            this.autoZoomInTimeout = window.setTimeout(tempFunction, 50);
+        } 
 
     }
 
     //
-    //  zoom out animation
+    //  zoom out animation (this method is outdated)
     //
     this.autoZoomOut = function () {
         if (this.mousedownTime != null) {
@@ -1336,6 +1370,7 @@ It has the same parameters as the "draw" method, but no "intZoom"
                 this.layerDrawLastFrame = window.setTimeout(tempFunction, 200);
 
                 if (this.blocked){
+			//console.log("blocked");
 			return;
 		}
             }
@@ -1935,7 +1970,7 @@ It has the same parameters as the "draw" method, but no "intZoom"
         var zoomlevel = img.parentNode.getAttribute("zoomlevel");
         for (var i = 0; i < img.parentNode.getElementsByTagName("img").length; i++) {
 		var theimg=img.parentNode.getElementsByTagName("img").item(i);
-		if(theimg.hasAttribute("overlay")){
+		if(theimg.getAttribute("overlay")){
 			continue;
 		}
 		total++;

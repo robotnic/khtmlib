@@ -30,11 +30,15 @@ khtml.maplib.Vector=function(){
 				break;
                         case "vml":
                                 if(document.namespaces['v'] == null) {
-                                        var stl = document.createStyleSheet();
-                                        stl.addRule("v\\:*", "behavior: url(#default#VML);");
                                         document.namespaces.add("v", "urn:schemas-microsoft-com:vml");
+                                        var stl = document.createStyleSheet();
+                                        stl.addRule("v\\:group", "behavior: url(#default#VML);");
+                                        stl.addRule("v\\:polyline", "behavior: url(#default#VML);");
                                 }
-                                vectorEl=document.createElement("v:group");
+                                //vectorEl=document.createElement("v:group");
+                                vectorEl=document.createElement("div");
+				//document.body.appendChild(vectorEl);
+				//vectorEl.style.display="none";
 				break;
 			default:
 				alert("error: unknown vector backend");
@@ -45,6 +49,8 @@ khtml.maplib.Vector=function(){
 		vectorEl.setAttribute("height",themap.mapsize.height+"px");
 		vectorEl.setAttribute("width",themap.mapsize.width+"px");
 		vectorEl.style.position="absolute";
+		vectorEl.style.top="0";
+		vectorEl.style.left="0";
 		return vectorEl;	
 	}
 	this.init=function(themap){
@@ -68,11 +74,16 @@ khtml.maplib.Vector=function(){
 			this.stopit=false;
 			if(a!=null){
 				if(this.oldVectorEl && this.oldVectorEl.parentNode){
-					
 					//draw not finished - go back to old version (move)
-					this.vectorEl=this.createVectorElement(this.themap);
-					this.themap.overlayDiv.appendChild(this.vectorEl);
-					this.themap.overlayDiv.removeChild(this.oldVectorEl);
+					try{  //ie workaround
+						this.oldVectorEl.parentNode.removeChild(this.oldVectorEl);
+						this.vectorEl=this.createVectorElement(this.themap);
+						this.themap.overlayDiv.appendChild(this.vectorEl);
+					}catch(e){
+						alert(this.oldVectorEl.tagName);
+						alert(this.oldVectorEl.parentNode.tagName);
+
+					}
 				}
 				return;
 			}
@@ -81,10 +92,13 @@ khtml.maplib.Vector=function(){
 			if(this.oldZoom==this.themap.zoom()){
 				//this.oldVectorEl=this.vectorEl;
 				//this.vectorEl=this.createVectorElement(this.themap);
-				var dx=(this.themap.moveX - this.lastMoveX)*this.themap.faktor*this.themap.sc;
-				var dy=(this.themap.moveY - this.lastMoveY)*this.themap.faktor*this.themap.sc;
+				var dx=Math.round((this.themap.moveX - this.lastMoveX)*this.themap.faktor*this.themap.sc);
+				var dy=Math.round((this.themap.moveY - this.lastMoveY)*this.themap.faktor*this.themap.sc);
+			
 				this.vectorEl.style.top=dy+"px";
 				this.vectorEl.style.left=dx+"px";
+				//alert(this.vectorEl.style.top);
+				
 				if(!this.themap.finalDraw){
 					return;
 				}
@@ -99,6 +113,7 @@ khtml.maplib.Vector=function(){
 
 			if(this.oldVectorEl && this.oldVectorEl.parentNode ){
 				this.oldVectorEl.parentNode.replaceChild(this.vectorEl,this.oldVectorEl);
+				this.vectorEl.style.display="";
 				return;
 			}
 			 return;
@@ -144,10 +159,11 @@ khtml.maplib.Vector=function(){
 				path.setAttribute("fill",fill);
 				break;
 			case "vml":
-				this.path=document.createElement("v:polyline");
-				this.path.setAttribute("fillcolor",fill);
-				this.path.setAttribute("strokecolor",stroke);
-				this.path.setAttribute("strokeweight",strokeWidth);
+				var path=document.createElement("v:polyline");
+				path.setAttribute("fillcolor",fill);
+				path.setAttribute("strokecolor",stroke);
+				path.setAttribute("strokeweight",strokeWidth +"px");
+				break;
 
 
 		}
@@ -172,7 +188,7 @@ khtml.maplib.Vector=function(){
 					break;
 				case "svg":
 					if(i==0){
-						d="M"+p["x"]+","+p["y"];
+						var d="M"+p["x"]+","+p["y"];
 					}else{
 						var dropped=this.dropped;
 						if(this.deside(p) || i==l.length -1){
@@ -184,15 +200,20 @@ khtml.maplib.Vector=function(){
 					}
 					break;
 				case "vml":
+					var x=Math.round(p["x"]);
+					var y=Math.round(p["y"]);
 					if(i==0){
-                                                d=" "+p["x"]+"px,"+p["y"]+"px";
+                                                //var d=" "+x+"px,"+y+"px ";
+                                                var d=" "+x+","+y+" ";
                                         }else{
                                                 var dropped=this.dropped;
                                                 if(this.deside(p) || i==l.length -1){
                                                         if(dropped && i!=l.length -1){
-                                                                d+=" "+dropped["x"]+"px,"+dropped["y"]+"px";
+                                                                //d+=" "+parseInt(dropped["x"])+"px,"+parseInt(dropped["y"])+"px ";
+                                                                d+=" "+Math.round(dropped["x"])+","+Math.round(dropped["y"])+" ";
                                                         }
-                                                        d+=" "+p["x"]+"px,"+p["y"]+"px";
+                                                        d+=" "+x+","+y+" ";
+                                                        //d+=" "+x+"px,"+y+"px ";
                                                 }
                                         }
                                         break;
@@ -235,18 +256,34 @@ khtml.maplib.Vector=function(){
 				}
 				break;	
 			case "vml":
-				this.path.setAttribute("filled",style.close);
-                                if(style.cutout){
+				path.setAttribute("filled",style.close);
+                                //if(style.cutout){
+					/* do the holes
                                         if(this.lastpath){
-						this.path.setAttribute("clip-rule","nonzero");	
+						this.lastpath.setAttribute("clip-rule","nonzero");	
                                         }else{
                                                 alert("cutout not possible");
                                         }
-                                }else{
-					this.path.points.value=d;
+					*/
+                                //}else{
                                         this.vectorEl.appendChild(path);
+//					alert(this.vectorEl.childNodes.length);
+					//path.style.position="absolute";
+					//alert(d);	
+					if(!path.points){
+						path.setAttribute("points",d);
+					}else{
+						path.points.value=d;
+					}
                                         this.lastpath=path;
-                                }
+					//alert(d+" ---- "+path.points.value);
+				/*
+				alert(path.points.value);
+				alert(path.strokecolor);
+				alert(path.fillcolor);
+				alert(path.strokeweight);
+				*/
+                                //}
                                 break;
 	
 		}	
@@ -323,9 +360,11 @@ khtml.maplib.Vector=function(){
 		if(this.ctx){
 			this.ctx.clearRect ( 0 , 0 , this.themap.mapsize.width , this.themap.mapsize.height );
 		}
+
 		while(this.vectorEl.firstChild){
 			this.vectorEl.removeChild(this.vectorEl.firstChild);
 		}
+
 	}
 
 	function getInternetExplorerVersion() {
