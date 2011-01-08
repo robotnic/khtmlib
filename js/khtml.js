@@ -132,7 +132,10 @@ khtml.maplib.Bounds=function(southwest, northeast) {
 
 khtml.maplib.Map=function(map) {
 
-    //Overlays 
+    //
+    // Overlays handling
+    //
+
     this.addOverlay = function (obj) {
         this.overlays.push(obj);
         if (typeof(obj.init) == "function") {
@@ -148,9 +151,6 @@ khtml.maplib.Map=function(map) {
 	//this.overlayClone=this.overlayDiv.cloneNode(true);
 	//this.clone.appendChild(this.overlayClone);
 	
-        //if(!this.internetExplorer){
-        this.svg.style.display = "";
-        //}
         var that = this;
 	var i=0;
         for (obj in this.overlays) {
@@ -160,9 +160,9 @@ khtml.maplib.Map=function(map) {
 			}catch(e){};
 			i++;
 		}
-		//try{
-			this.overlays[obj].render();
-		//}catch(e){};
+		
+		this.overlays[obj].render();
+	
         }
     }
     this.hideOverlays = function () {
@@ -217,16 +217,16 @@ khtml.maplib.Map=function(map) {
     }
 
 
-  /*==================================================
-	//
-	//    Touchscreen and Mouse EVENTS
-	//
-	===================================================*/
+    /*==================================================
+    //
+    //    Touchscreen and Mouse EVENTS
+    //
+    ===================================================*/
 
     //
     //  Touchscreen
     //  Here also the multitouch zoom is done
-    //
+    //  Bugs: if map is not fullscreen it will not work as it should. (see pageX, pageY)
 
     this.oldMoveX=0;
     this.oldMoveY=0;
@@ -366,18 +366,15 @@ khtml.maplib.Map=function(map) {
                     this.animateMove(speedX, speedY);
                 }
             }
-        /*
-			  var that=this;
-			  var tempFunction=function () {that.moveAnimationBlocked=false};
-			  setTimeout(tempFunction,this.doubleclickTime);
-			  */
         }
-        //this.renderOverlays();
+        
     }
 
     //
     //  mouse events
+    //  (distance measure code not in use anymore)
     //
+
     //ie sucks
     this.pageX = function (evt) {
         try {
@@ -442,32 +439,6 @@ khtml.maplib.Map=function(map) {
         }
         this.mousedownTime2 = (new Date()).getTime();
 
-        if (this.distanceMeasuring == "yes") {
-            //this.normalize();
-            this.distanceStartpoint = this.XYTolatlng(this.moveX + this.pageX(evt), this.moveY +  this.pageY(evt));
-            var img = document.createElement("img");
-            img.setAttribute("src", "images/dot_green.png");
-            img.style.position = "absolute";
-            img.style.top = "-3px"; //<---  flag
-            img.style.left = "-4px"; //<---  flag
-            img.style.width = "8px"; //<---  flag
-            img.style.height = "8px";
-
-            var marker = new kMarker(this.distanceStartpoint, img);
-            this.addOverlay(marker);
-            var img2 = img.cloneNode(img);
-            this.moveMarker = new kMarker(this.distanceStartpoint, img2);
-
-            var points = new Array();
-            var style = new kStyle();
-            style.addStyle("stroke-width", 1);
-            style.addStyle("stroke", "green");
-            style.addStyle("stroked", "green");
-            this.measureLine = new kPolyline(points, style);
-            this.addOverlay(this.measureLine);
-
-            return;
-        }
 
 
         if (evt.shiftKey) {
@@ -503,44 +474,7 @@ khtml.maplib.Map=function(map) {
         //this.mousedownTime2=0; //if it's moved it's not a doubleclick
         this.lastMouseX = this.pageX(evt);
         this.lastMouseY = this.pageY(evt);
-        if (this.distanceMeasuring) {
-            if (this.moveMarker) {
-                //this.normalize();
-                var movePoint = this.XYTolatlng(this.pageX(evt),  this.pageY(evt));
-                this.moveMarker.moveTo(movePoint);
-                this.addOverlay(this.moveMarker);
-                //add line
-                var points = new Array();
-                if (this.distanceStartpoint.lng() < movePoint.lng()) {
-                    points.push(this.distanceStartpoint);
-                    points.push(movePoint);
-                } else {
-                    points.push(movePoint);
-                    points.push(this.distanceStartpoint);
-                }
-
-                this.measureLine.setPoints(points);
-                var mbr = new khtml.maplib.Bounds(movePoint, this.distanceStartpoint);
-                var d = mbr.getDistanceText();
-
-                var style2 = new kStyle();
-                style2.addStyle("fill", "black");
-                style2.addStyle("stroke", "white");
-                style2.addStyle("stroke-width", 0.5);
-                style2.addStyle("font-size", "18px");
-                if (navigator.userAgent.indexOf("Opera") != -1) {
-                    style2.addStyle("font-size", "15px");
-                } else {
-                    style2.addStyle("font-weight", "bold");
-                }
-                style2.addStyle("text-anchor", "middle");
-                style2.addStyle("dy", "-2");
-                this.measureLine.setText(d, style2);
-                var that = this;
-                this.measureLine.render(that);
-                return;
-            }
-        }
+        
         if (evt.shiftKey) {
             if (this.selectRect) {
                 this.selectRect.style.width = Math.abs(this.pageX(evt) - this.selectRectLeft) + "px";
@@ -623,6 +557,9 @@ khtml.maplib.Map=function(map) {
 	setTimeout(tempFunction,1);	
     }
 
+    //
+    // Mouse wheel
+    //
 
     this.zoomAccelerate = 0;
 	this.lastWheelDelta=0; //workaround for spontan wheel dircetion change (mac firefox, safari windows)
@@ -802,7 +739,7 @@ khtml.maplib.Map=function(map) {
     }
 
     //
-    //  zoom in animation
+    //  zoom  animation
     //
 
     this.autoZoomInTimeout = null;
@@ -812,7 +749,7 @@ khtml.maplib.Map=function(map) {
         if (this.autoZoomInTimeout) {
             window.clearTimeout(this.autoZoomInTimeout);
         }
-        var stepwidth = 0.10;
+        var stepwidth = 0.20;
 	
         if (z < 0) {
 		stepwidth = -stepwidth
@@ -858,7 +795,7 @@ khtml.maplib.Map=function(map) {
 	//console.log(timeDelta);
 	this.autoZoomStartTime=now;	
 
-	if(timeDelta <60 || zoomGap){
+	if(timeDelta <100 || zoomGap){
 	if(zoom >=this.tileSource.minzoom && zoom <= this.tileSource.maxzoom){
 		this.moveX = this.moveX + dx / faktor;
 		this.moveY = this.moveY + dy / faktor;
@@ -891,23 +828,6 @@ khtml.maplib.Map=function(map) {
 
     }
 
-    //
-    //  zoom out animation (this method is outdated)
-    //
-    this.autoZoomOut = function () {
-        if (this.mousedownTime != null) {
-            var now = (new Date()).getTime();
-            if (now - this.mousedownTime > this.zoomOutTime) {
-                this.zoomOutStarted = true;
-                //var center=new khtml.maplib.Point(this.lat,this.lng);
-                var center = this.getCenter();
-                var zoom = this.position.zoom - this.zoomOutSpeed;
-                if (zoom < 1) zoom = 1;
-                this.centerAndZoom(center, zoom);
-                this.zoomOutSpeed = this.zoomOutSpeed * 1.01;
-            }
-        }
-    }
 
     //
     //  Set the map coordinates and zoom
@@ -963,22 +883,6 @@ khtml.maplib.Map=function(map) {
         this.executeCallbackFunctions();
     }
 
-    //
-    //  For good speed many frames are dropped. If the frames must not be dropped, this medthod can be used
-    //	
-
-    this.forceSetCenter = function (center, zoom) {
-        var zoom = parseFloat(zoom);
-        this.position.center = center;
-        this.position.zoom = zoom;
-        this.lat = center.lat();
-        this.lng = center.lng();
-        this.moveX = 0;
-        this.moveY = 0;
-
-        this.layer(this.map, this.lat, this.lng, this.moveX, this.moveY, zoom);
-    }
-
 
 
     //
@@ -1009,8 +913,8 @@ khtml.maplib.Map=function(map) {
 	this.setCenter2(this.center(),this.zoom());
     }	
 
-    this.tiles=function(t){
-	this.tileSource=t;
+    this.tiles=function(tileSource){
+	this.tileSource=tileSource;
     }
     this.tileOverlays=new Array();		
     this.addTilesOverlay=function(t){
@@ -1028,16 +932,12 @@ khtml.maplib.Map=function(map) {
         }
     }
 
-
+   
     this.getCenter = function () {
         if (this.moveX != 0 || this.moveY != 0) {
             var center = new khtml.maplib.Point(this.movedLat, this.movedLng);
         } else {
             if (!this.position.center) {
-/*
-				this.setCenterNoLog(new khtml.maplib.Point(0,0),2);
-				var center=this.center;
-				*/
             } else {
                 var center = this.position.center;
             }
@@ -1186,48 +1086,7 @@ khtml.maplib.Map=function(map) {
         return this.intZoom;
     }
 
-    //
-    // WGS84 to x,y at the layer calculation
-    // This method is uses when 3D CSS is used.
-    // For Vector graphics also the 3D CSS is used.
-    //
 
-    this.latlngToXYlayer = function (point) {
-        //if you use this function be warned that it only works for the SVG Layer an  css3d
-        var zoom = this.map.intZoom;
-        var lat = point.lat();
-        var lng = point.lng();
-
-        var tileTest = getTileNumber(lat, lng, zoom);
-        var worldCenter = this.getCenter();
-        var tileCenter = getTileNumber(worldCenter.lat(), worldCenter.lng(), zoom);
-
-        var faktor = Math.pow(2, this.intZoom);
-        var x = (tileCenter[0] - tileTest[0]) * this.tileW * faktor;
-        var y = (tileCenter[1] - tileTest[1]) * this.tileW * faktor;
-
-        if (x > 1000000) {
-            alert("grosser wert");
-        }
-
-        var dx = this.layers[this.intZoom]["dx"];
-        var dy = this.layers[this.intZoom]["dy"];
-        var point = new Array();
-/*
-                point["x"]=-x +this.svgWidth/2 ;
-                point["y"]=-y +this.svgHeight/2 ;
-                var rand=Math.random();
-                if(rand > 1.2){
-                        point["x"]=0;
-                        point["y"]=0;
-                }
-		*/
-
-        point["x"] = -x + this.width / 2;
-        point["y"] = -y + this.height / 2;
-        return (point);
-
-    }
 
     //
     // WGS84 to x,y at the div calculation
@@ -1274,6 +1133,9 @@ khtml.maplib.Map=function(map) {
         return p;
     }
 
+
+//mouse coordinates to lat, lng
+
 	this.mouseToLatLng=function(evt){
 		var x=this.pageX(evt);	
 		var y=this.pageY(evt);	
@@ -1281,6 +1143,7 @@ khtml.maplib.Map=function(map) {
 		return p;
 	}
 
+//---- the next too methodes are not in use anymore
 
     //
     //  for iPhone to make page fullscreen (maybe not working)
@@ -1300,6 +1163,7 @@ khtml.maplib.Map=function(map) {
     // this method is buggy - no good
     //
 
+	//outdated
     this.getSize = function () {
         this.width = this.map.parentNode.offsetWidth;
         this.height = this.map.parentNode.offsetHeight;
@@ -1347,8 +1211,10 @@ khtml.maplib.Map=function(map) {
 
 
 /*================== LAYERMANAGER (which layer is visible) =====================
-Description: This method desides with layer is visible at the moment. 
-It has the same parameters as the "draw" method, but no "intZoom"
+Description: This method desides witch zoom layer is visible at the moment. 
+It has the same parameters as the "draw" method, but no "intZoom".
+
+This Layers are  NOT tile or vector overlays
 ========================================================================= */
 
 
@@ -1861,28 +1727,6 @@ It has the same parameters as the "draw" method, but no "intZoom"
 
 
 
-    this.getTileSrc = function (x, y, z) {
-        //Calculate the tile server. Use of a,b,c should increase speed but should not influence cache.
-        var hashval = (x + y) % 3;
-        switch (hashval) {
-        case 0:
-            var server = "a";
-            break;
-        case 1:
-            var server = "b";
-            break;
-        case 2:
-            var server = "c";
-            break;
-        default:
-            var server = "f";
-        }
-
-        var src = "http://" + server + ".tile.openstreetmap.org/" + z + "/" + x + "/" + y + ".png";
-        //              var src="http://khm1.google.com/kh/v=58&x="+x+"&s=&y="+y+"&z="+z+"&s=Gal";
-        return src;
-    }
-
     //
     //  this function was for BING tiles. It's not in use but I don't want to dump it.
     //
@@ -1904,12 +1748,9 @@ It has the same parameters as the "draw" method, but no "intZoom"
         return n;
     }
 
-    //
-    //this function trys to remove images if they are not needed at the moment.
-    //For webkit it's a bit useless because of bug
-    //https://bugs.webkit.org/show_bug.cgi?id=6656
-    //For Firefox it really brings speed
-    //	
+
+	//fade effect for int zoom change
+
 	this.fadeOutTimeout=null;
 	this.fadeOut=function(div,alpha){
 		if(this.fadeOutTimeout){
@@ -1929,6 +1770,14 @@ It has the same parameters as the "draw" method, but no "intZoom"
 		}
 		
 	}
+
+    //
+    //this function trys to remove images if they are not needed at the moment.
+    //For webkit it's a bit useless because of bug
+    //https://bugs.webkit.org/show_bug.cgi?id=6656
+    //For Firefox it really brings speed
+    // 
+
     this.hideLayer = function (zoomlevel) {
         if (this.intZoom != zoomlevel) {
             if (this.layers[zoomlevel]) {
@@ -1979,6 +1828,7 @@ It has the same parameters as the "draw" method, but no "intZoom"
 
     }
 
+    //handling images of tile overlays
     this.ovImgLoaded=function(evt){
         if (evt.target) {
             var img = evt.target;
@@ -2038,7 +1888,7 @@ It has the same parameters as the "draw" method, but no "intZoom"
         }
     }
     //
-    // Image load error
+    // Image load error  (there maybe is an IE bug)
     //
     this.imgError = function (evt) {
         if (evt.target) {
@@ -2060,8 +1910,12 @@ It has the same parameters as the "draw" method, but no "intZoom"
         return returnArray;
     }
 
+
+    //----------------------------------------------------------
     //map is positioned absolute and is an a clone of the original map div.
     //on window resize it must be positioned again
+    //
+    //if there are problems with CSS margin, padding, border,.. this is the place to fix it	
 
         this.calculateMapSize=function(){
                 //this method is very slow in 2010 browsers
@@ -2190,6 +2044,7 @@ It has the same parameters as the "draw" method, but no "intZoom"
         }
     }
 
+    //?????????
     this.clearMap=function(){
 	while(this.clone.firstChild){
 		this.clone.removeChild(this.clone.firstChild);
@@ -2205,7 +2060,7 @@ It has the same parameters as the "draw" method, but no "intZoom"
         return 180 / Math.PI * (2 * Math.atan(Math.exp(a * Math.PI / 180)) - Math.PI / 2);
     }
 
-
+    //the image load information in the upper right corner
     this.imgLoadInfo=function(total,missing){
 		if(!this.loadInfoDiv){
 			this.loadInfoDiv=document.createElement("div");
@@ -2237,15 +2092,12 @@ It has the same parameters as the "draw" method, but no "intZoom"
     //
 
     this.internetExplorer = false;
-    this.svgSupport = true;
     if (navigator.userAgent.indexOf("MSIE") != -1) {
         this.internetExplorer = true;
-        this.svgSupport = false;
         //alert("Sorry, Internet Explorer does not support this map, please use a good Browser like chrome, safari, opera.");
     }
     if (navigator.userAgent.indexOf("Android") != -1) {
         //this.internetExplorer=true;
-        this.svgSupport = false;
         //wordaround for Android - Android is not a good browser, remembers me to IE 5.5
           var that=this;
           var tempFunction=function () {that.blocked=false};
@@ -2253,6 +2105,8 @@ It has the same parameters as the "draw" method, but no "intZoom"
 
     }
     this.position=new Object();
+
+    //mapnic tiles from OSM
     this.tiles({
         maxzoom:18,
         minzoom:1,
@@ -2326,17 +2180,6 @@ It has the same parameters as the "draw" method, but no "intZoom"
 
     this.setMapPosition();
 
-    if (this.svgSupport) {
-        this.svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    } else {
-        this.svg = document.createElement("div");
-    }
-    //container for Vector graphics (SVG, VML, and maybe Canvas for Android)
-    this.svg.style.width = "100%";
-    this.svg.style.height = "100%";
-    this.svg.style.position = "absolute";
-    this.clone.appendChild(this.svg);
-
 
     //div for markers
     this.overlayDiv = document.createElement("div");
@@ -2347,9 +2190,6 @@ It has the same parameters as the "draw" method, but no "intZoom"
     //this.overlayDiv.style.border = "1px solid black";
     this.clone.appendChild(this.overlayDiv);
 
-    //should be bigger than screen
-    this.svgWidth = 100000;
-    this.svgHeight = 100000;
 
     //distance tool
     this.distanceMeasuring = "no";
@@ -2405,11 +2245,11 @@ It has the same parameters as the "draw" method, but no "intZoom"
         this.css3d = true;
     }
     if (navigator.userAgent.indexOf("iPad") != -1) {
-        this.css3d = true;
+        this.css3d = false;
     }
     if (navigator.userAgent.indexOf("Safari") != -1) {
 	    if (navigator.userAgent.indexOf("Mac") != -1) {
-			this.css3d = false;   //errors in chrome 5 - but speed is ok
+			this.css3d = false;   //errors in chrome 5 - but speed is ok without css3d
 	    }else{
 			this.css3d = true;   //linux for example is ok
 	    }
