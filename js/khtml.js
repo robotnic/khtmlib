@@ -405,6 +405,9 @@ khtml.maplib.Map=function(map) {
 
     this.doubleclickBlocked=false;
     this.doubleclick = function (evt) {
+	this.discretZoom(1,this.pageX(evt), this.pageY(evt));
+	return;
+
         var that=this;
         if(this.doubleclickBlocked){
                 return;
@@ -561,6 +564,132 @@ khtml.maplib.Map=function(map) {
     // Mouse wheel
     //
 
+    this.startZoomTime=null;
+    this.mousewheel=function(evt){
+	if (evt.preventDefault) {
+            evt.preventDefault(); // The W3C DOM way
+        } else {
+            evt.returnValue = false; // The IE way
+        }
+        this.mapParent.focus();
+
+	if(!evt){
+		evt = window.event;
+	}
+        if (evt.wheelDelta) { /* IE/Opera/Chrom. */
+            delta = evt.wheelDelta / 60;
+            if (window.opera) {
+                delta = delta ;
+            }
+        } else if (evt.detail) { /** Mozilla case. */
+            delta = -evt.detail / 3;
+                if(this.lastWheelDelta * delta <0){
+                //      console.log(this.lastWheelDelta * delta);
+                        if(!this.wheelSpeedConfig["digizoom"]){
+                                delta=0;
+                        }
+                }
+                this.lastWheelDelta=-evt.detail/3;
+        }
+	if(delta <0){
+		var direction=-1;
+	}else{
+		var direction=1;
+		
+	}
+	if(this.wheelSpeedConfig["digizoom"]){
+		this.discretZoom(direction,this.pageX(evt), this.pageY(evt));
+		return;
+	}
+	if(!this.startZoomTime){
+		this.startZoomTime=(new Date());
+		this.startZoomTime2=(new Date());
+		this.oldZoom=this.zoom();
+		this.speed=1;
+	}
+	var delta=(new Date()) - this.startZoomTime;
+	var delta2=(new Date()) - this.startZoomTime2;
+
+	var that=this;
+	var tempFunc=function(){
+		that.startZoomTime=new Date();
+	}
+	this.startZoomTime=new Date();
+	if(delta > 300){
+		//console.log("reset");
+		this.startZoomTime2=new Date();
+		this.oldZoom=this.zoom();
+		this.speed=1;
+		delta2=0.1;
+	}
+	this.speed=this.speed*2;
+	//setTimeout(tempFunc,0);
+	if(this.speed > 5) this.speed=5;
+	
+	//var w=document.getElementById("map").getElementsByTagName("img").item(0).offsetWidth;
+	//console.log(delta,delta2);
+	var zoom=this.oldZoom + delta2/3000*this.speed *direction;	
+	if(zoom > this.position.maxZoom) zoom=this.position.maxZoom;
+	if(zoom < this.position.minZoom) zoom=this.position.minZoom;
+	//console.log("zoom: "+zoom);
+	
+	this.centerAndZoomXY(this.center(),zoom,this.pageX(evt), this.pageY(evt));	
+
+    }
+
+    this.zoomTimeouts=new Array();
+    this.discretZoomBlocked=false;	
+    this.discretZoom=function(direction,x,y){
+        var that=this;
+        if(this.discretZoomBlocked){
+                return;
+        }
+
+        var func = function () {
+                that.discretZoomBlocked = false;
+        };
+        this.discretZoomBlockedTimeout=setTimeout(func,200);
+        this.discretZoomBlocked = true;
+
+	var steps=20;
+	for(var i=1;i<=steps;i++){
+		if(this.zoomTimeouts[i]){
+			clearTimeout(this.zoomTimeouts[i]);
+		}
+	}
+        var start=this.zoom();
+	if(direction==-1){
+		var end=Math.ceil(this.zoom() +0.9);
+	}else{
+		var end=Math.floor(this.zoom() -0.9);
+	}
+	var delta=Math.abs(start - end);
+	var lastDZ=0;
+	for(var i=1;i<=steps;i++){
+		var rad=i/steps*Math.PI/2;
+		var dz=direction*(Math.sin(rad)) ;
+		var ddz=dz - lastDZ;
+		//console.log(i,dz,ddz,rad,direction);
+		this.zoomTimeouts[i]=this.discretZoomExec(x,y,ddz,i,steps );
+		lastDZ=dz;
+	}
+    }	
+    this.discretZoomExec=function(x,y,dz,i,steps){
+		var that=this;
+		var tempFunc=function(){
+			var zoom=that.zoom() + dz;
+			if(i==steps){
+				zoom=Math.round(zoom);
+			}
+			//console.log(zoom);
+			that.centerAndZoomXY(that.center(),zoom,x,y);
+
+		}
+		return setTimeout(tempFunc,i*20);
+    }
+
+
+/*
     this.zoomAccelerate = 0;
 	this.lastWheelDelta=0; //workaround for spontan wheel dircetion change (mac firefox, safari windows)
     this.mousewheel = function (evt) {
@@ -579,14 +708,14 @@ khtml.maplib.Map=function(map) {
         window.setTimeout(tempFunction, 1000);
 
         delta = null;
-        if (!evt) /* For IE. */
+        if (!evt) // For IE. 
         evt = window.event;
-        if (evt.wheelDelta) { /* IE/Opera/Chrom. */
+        if (evt.wheelDelta) { // IE/Opera/Chrom. 
             delta = evt.wheelDelta / 60;
             if (window.opera) {
                 delta = delta ;
             }
-        } else if (evt.detail) { /** Mozilla case. */
+        } else if (evt.detail) { // Mozilla case. 
             delta = -evt.detail / 3;
 		if(this.lastWheelDelta * delta <0){
 		//	console.log(this.lastWheelDelta * delta);
@@ -631,6 +760,7 @@ khtml.maplib.Map=function(map) {
         }
         window.setTimeout(tempFunction, 20);
     }
+*/
 
     this.digizoomblocked=false;
     this.digizoomblockedTimeout=null;
@@ -827,6 +957,37 @@ khtml.maplib.Map=function(map) {
 	}
 
     }
+   
+    //
+    // same as centerAndZoom but zoom center is not map center
+    //
+
+    this.centerAndZoomXY=function(center,zoom,x,y){
+
+        faktor = Math.pow(2, zoom);
+        var zoomCenterDeltaX = x - this.mapsize.width / 2;
+        var zoomCenterDeltaY = y - this.mapsize.height / 2;
+	var dzoom=zoom - this.zoom() ;
+        var f = Math.pow(2, dzoom);
+
+        var dx = zoomCenterDeltaX - zoomCenterDeltaX * f;
+        var dy = zoomCenterDeltaY - zoomCenterDeltaY * f;
+
+        if(zoom >=this.tileSource.minzoom && zoom <= this.tileSource.maxzoom){
+                this.moveX = this.moveX + dx / faktor;
+                this.moveY = this.moveY + dy / faktor;
+        }
+
+
+        var center = new khtml.maplib.Point(this.lat, this.lng);
+        if (zoom > this.tileSource.maxzoom){
+                 zoom = this.tileSource.maxzoom;
+        }
+        if (zoom < this.tileSource.minzoom){
+                 zoom = this.tileSource.minzoom;
+        }
+	this.setCenter2(center,zoom);
+    }	
 
 
     //
@@ -1223,6 +1384,7 @@ This Layers are  NOT tile or vector overlays
     this.finalDraw=false;
     this.layerOldZoom=0;
     this.layer = function (map, lat, lng, moveX, moveY, zoom) {
+			var delta=(new Date()) - this.startZoomTime;
 	this.stopRenderOverlays();
 	if(!zoom){
 		var zoom=this.getZoom();
@@ -1243,7 +1405,7 @@ This Layers are  NOT tile or vector overlays
                 this.layerDrawLastFrame = window.setTimeout(tempFunction, 200);
 
                 if (this.blocked){
-			//console.log("blocked");
+			var delta=(new Date()) - this.startZoomTime;
 			return;
 		}
             }
@@ -1397,7 +1559,10 @@ This Layers are  NOT tile or vector overlays
             var func = function () {
                 that.blocked = false;
             };
-            window.setTimeout(func, 20);
+	    if(this.layerBlockTimeout){
+		clearTimeout(this.layerBlockTimeout);
+	    }	
+            this.layerBlockTimeout=window.setTimeout(func, 20);
 	    this.finalDraw=false;
     }
 
@@ -1719,7 +1884,6 @@ This Layers are  NOT tile or vector overlays
         if(this.loadingZoomLevel==intZoom){
 		this.imgLoadInfo(total,notLoaded);
         }
-
 
     }
     // ====== END OF DRAW ======	
