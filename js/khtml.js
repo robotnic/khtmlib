@@ -658,16 +658,17 @@ khtml.maplib.Map=function(map) {
 		}
 	}
         var start=this.zoom();
-	if(direction==-1){
+	if(direction==1){
 		var end=Math.ceil(this.zoom() +0.9);
 	}else{
 		var end=Math.floor(this.zoom() -0.9);
 	}
 	var delta=Math.abs(start - end);
+	//console.log(start, end, delta);
 	var lastDZ=0;
 	for(var i=1;i<=steps;i++){
 		var rad=i/steps*Math.PI/2;
-		var dz=direction*(Math.sin(rad)) ;
+		var dz=direction*(Math.sin(rad))*delta ;
 		var ddz=dz - lastDZ;
 		//console.log(i,dz,ddz,rad,direction);
 		this.zoomTimeouts[i]=this.discretZoomExec(x,y,ddz,i,steps );
