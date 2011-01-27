@@ -11,24 +11,32 @@ height:300px;
 <script type="text/javascript">
 
 var mr=new Object(khtml.maplib);
+var map=null;
+var zoom=2;
+var x=0;
 
 function init(){
-	var map=new mr.Map(document.getElementById("map"));  //dom element
-	map.tiles({
-		  maxzoom:16,
-		  minzoom:1,
-		  src:function(x,y,z){
-		     return "http://andy.sandbox.cloudmade.com/tiles/cycle/"+z+"/"+x+"/"+y+".png";
-		  },
-		  copyright:"osm"
-	});
-	var center=new mr.Point(48.2,15.6);  //latitude, longitude
+	map=new mr.Map(document.getElementById("map"));  //dom element
+	var center=new mr.Point(58.2,15.6);  //latitude, longitude
 	map.centerAndZoom(center,12); //12 = zoomlevel
+
+	start();
 }
+
+function start(){
+	zoom=zoom+0.01;
+	x++;	
+	map.centerAndZoomXY(map.center(),zoom ,x,00);
+	setTimeout("start()",20);
+}
+
+
+
 </script>
 </head>
 <body onload="init()">
-<h1>Cyclemap</h1>
+<h1>Have a look at the html source to see what's going on</h1>
+This is the most often used map
 <div id="map"> </div>
  
 </body>

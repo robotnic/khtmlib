@@ -15,6 +15,8 @@ var mr=new Object(khtml.maplib);
 
 function init(){
 	var map=new mr.Map(document.getElementById("map"));  //dom element
+	var center=new mr.Point( 48.18352,16.29521);
+	map.centerAndZoom(center,11); //12 = zoomlevel
 /* see karte
 	map.addTilesOverlay({
 		  maxzoom:18,
@@ -35,9 +37,9 @@ function init(){
 		  copyright:"shade"
 	})
 
-
 	var center=new mr.Point( 48.18352,16.29521);
 	map.centerAndZoom(center,11); //12 = zoomlevel
+
 }
 </script>
 </head>

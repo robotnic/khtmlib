@@ -16,8 +16,8 @@ var mr=new Object(khtml.maplib);
 function init(){
 	var map=new mr.Map(document.getElementById("map"));  //dom element
 	map.tiles({
-                  maxzoom:17,
-                  minzoom:1,
+                  maxzoom:16,
+                  minzoom:3,
                   src:function(x,y,z){
                      //return "http://andy.sandbox.cloudmade.com/tiles/cycle/"+z+"/"+x+"/"+y+".png";
 			return	"http://a.www.toolserver.org/tiles/osm-labels-de/"+z+"/"+x+"/"+y+".png";
@@ -34,7 +34,7 @@ function init(){
 </head>
 <body onload="init()">
 <h1>Openseamap</h1>
-<div id="map"> </div>
+<div id="map" style="border:1px solid lightgrey"> </div>
  
 </body>
 </html>

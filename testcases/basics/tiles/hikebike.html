@@ -1,0 +1,41 @@
+<html>
+    <head>
+        <title>OpenStreetMap Hike & Bike Map</title>
+	<meta name="description" content="A hiking and biking map using OpenStreetMap data (licensed CC-by-SA 2.0). OpenStreetMap is the free wiki world map that everybody can edit.">
+	<link rel="icon" type="image/png" href="http://toolserver.org/~cmarqu/hikebike16x16.png" />
+        <script type="text/javascript" src="http://www.khtml.org/osm/khtmlib/js/khtml.js"></script>
+
+        <script type="text/javascript">
+var mr=new Object(khtml.maplib);
+
+function init(){
+	var map=new mr.Map(document.getElementById("map"));  //dom element
+	map.tiles({
+		  maxzoom:18,
+		  minzoom:4,
+		  src:function(x,y,z){
+                        return "http://toolserver.org/tiles/hikebike/"+z+"/"+x+"/"+y+".png";
+		  },
+		  copyright:"hikebikemap"
+	})
+	map.addTilesOverlay({
+		  maxzoom:18,
+		  minzoom:4,
+		  src:function(x,y,z){
+			return "http://toolserver.org/~cmarqu/hill/"+z+"/"+x+"/"+y+".png";
+		  },
+		  copyright:"shade"
+	})
+
+
+	var center=new mr.Point(50.93563, 14.15823);
+	map.centerAndZoom(center,12); //12 = zoomlevel
+}
+        </script>
+
+    </head>
+    <body onload="init()">
+        <div id="map" style="position:absolute;top:0px;left:0px;width:100%;height:100%"></div>
+    </body>
+</html>
+
