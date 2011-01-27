@@ -1076,22 +1076,28 @@ khtml.maplib.Map=function(map) {
     }	
 
     this.tiles=function(tileSource){
+	this.clearMap();
 	this.tileSource=tileSource;
     }
     this.tileOverlays=new Array();		
     this.addTilesOverlay=function(t){
 	this.tileOverlays.push(t);
+	var ov=this.tileOverlays[this.tileOverlays.length -1];
+	this.clearMap();
+	return ov;
     }	
 
     this.removeTilesOverlay = function (ov) {
+	//alert(this.tileOverlays.length);
         for (var i = 0; i < this.tileOverlays.length; i++) {
             var overlay = this.tileOverlays[i];
             if (ov == overlay) {
                 //ov.clear();
-                this.thisOverlays.splice(i ,1);
+                this.tileOverlays.splice(i ,1);
                 break;
             }
         }
+	this.clearMap();
     }
 
    
@@ -1403,7 +1409,7 @@ This Layers are  NOT tile or vector overlays
 			that.finalDraw=true;
                     that.layer(map, lat, lng, moveX, moveY, zoom);
                 };
-                this.layerDrawLastFrame = window.setTimeout(tempFunction, 200);
+                this.layerDrawLastFrame = window.setTimeout(tempFunction, 100);
 
                 if (this.blocked){
 			var delta=(new Date()) - this.startZoomTime;
@@ -1447,6 +1453,14 @@ This Layers are  NOT tile or vector overlays
 		var intZoom = Math.floor(zoom );
 	}else{
 		var intZoom = Math.round(zoom );
+	}
+	if(this.layerOldZoom > zoom && !this.finalDraw){
+		if (this.layers[intZoom] && !this.layers[intZoom]["loadComplete"]) {
+			this.visibleZoom=intZoom+1;
+			//console.log("not complete");
+		}else{
+			//console.log("complete");
+		}
 	}
 	this.intZoom=intZoom;
 	if (intZoom > this.tileSource.maxzoom) {
@@ -1772,6 +1786,7 @@ This Layers are  NOT tile or vector overlays
 				var ovImg=img.cloneNode(true);
 				var src=ovObj.src(xx,yy,intZoom);	
 				var ovId=id+"_"+ov;
+				//console.log(ovId);
 				//console.log(src);	
 				ovImg.setAttribute("src",src);
 				ovImg.setAttribute("overlay",ov);
@@ -1788,11 +1803,11 @@ This Layers are  NOT tile or vector overlays
                     Event.attach(img, "error", this.imgError, this, false);
                 } else {
                 }
-
+		var temp=Math.round(Math.random()*255);
                 if (!this.css3d) {
 			var imgArray=this.layers[intZoom]["images"][id]["array"];
 				for(var iii=0; iii<imgArray.length;iii++){	
-				    var sc = Math.pow(2, zoomDelta);
+				    //var sc = Math.pow(2, zoomDelta);
 				    var ddX = (tile[0] - intX) + Math.floor(dxDelta);
 				    var ddY = (tile[1] - intY) + Math.floor(dyDelta);
 
@@ -1808,6 +1823,9 @@ This Layers are  NOT tile or vector overlays
 				    imgArray[iii].style.top = top + "px";
 				    imgArray[iii].style.height = (right - left) + "px";
 				    imgArray[iii].style.width = (bottom - top) + "px";
+					var c="rgb("+temp+","+(255-temp)+",33)";
+					//console.log(c);
+				    //imgArray[iii].style.border="1px solid "+c;
 				}
                 }
 
@@ -1826,17 +1844,28 @@ This Layers are  NOT tile or vector overlays
         //https://bugs.webkit.org/show_bug.cgi?id=6656
         for (var vimg in this.layers[intZoom]["images"]) {
             if (this.layers[intZoom]["images"][vimg]["visibility"]) {
-                if (this.layers[intZoom]["images"][vimg]["img"].getAttribute("loaded") == "yes") {
-                    this.layers[intZoom]["images"][vimg]["img"].style.visibility = "";
-                }
+		if (this.layers[intZoom]["images"][vimg]["array"][0].getAttribute("loaded") == "yes") {
+			var overlayImages=this.layers[intZoom]["images"][vimg]["array"];
+			for(var o=0; o<overlayImages.length;o++){
+				if(overlayImages[o].getAttribute("loaded") == "yes") {
+				    overlayImages[o].style.visibility = "";
+				}
+			}
+		}
             } else {
-                this.layers[intZoom]["images"][vimg]["img"].style.visibility = "hidden";
-                //delete img if not loaded and not needed at the moment
-                if (this.layers[intZoom]["images"][vimg]["img"].getAttribute("loaded") != "yes") {
-                    layerDiv.removeChild(this.layers[intZoom]["images"][vimg]["img"]);
-                    delete this.layers[intZoom]["images"][vimg]["img"];
-                    delete this.layers[intZoom]["images"][vimg];
+		var overlayImages=this.layers[intZoom]["images"][vimg]["array"];
+		for(var o=0; o<overlayImages.length;o++){
+			this.layers[intZoom]["images"][vimg]["array"][o].style.visibility = "hidden";
+			//delete img if not loaded and not needed at the moment
+			if (this.layers[intZoom]["images"][vimg]["array"][o].getAttribute("loaded") != "yes") {
+				    layerDiv.removeChild(this.layers[intZoom]["images"][vimg]["array"][o]);
+					//console.log("removed oerlay image");
+			    //layerDiv.removeChild(this.layers[intZoom]["images"][vimg]["img"]);
+				
+			}
                 }
+	    delete this.layers[intZoom]["images"][vimg]["img"];
+	    delete this.layers[intZoom]["images"][vimg];
             }
         }
 
@@ -1874,7 +1903,7 @@ This Layers are  NOT tile or vector overlays
 	var total=0;	
 	for (var vimg in this.layers[this.loadingZoomLevel]["images"]) {
 		total++;
-		var img=this.layers[this.loadingZoomLevel]["images"][vimg]["img"];
+		var img=this.layers[this.loadingZoomLevel]["images"][vimg]["array"][0];
 		if(!(img.getAttribute("loaded")=="yes")){
 			notLoaded++;
 		}
@@ -1966,15 +1995,20 @@ This Layers are  NOT tile or vector overlays
                     if (this.layers[zoomlevel]["images"][vimg]["img"].getAttribute("loaded") != "yes") {
                         if (zoomlevel != this.intZoom) {
                             //this.layers[zoomlevel]["images"][vimg]["img"].setAttribute("src", "#");
-				try{
-				    this.layers[zoomlevel]["layerDiv"].removeChild(this.layers[zoomlevel]["images"][vimg]["img"]);
-				}catch(e){}
+				//try{
+				    //this.layers[zoomlevel]["layerDiv"].removeChild(this.layers[zoomlevel]["images"][vimg]["img"]);
+					var overlayImages=this.layers[zoomlevel]["images"][vimg]["array"];
+					for(var o=0; o<overlayImages.length;o++){
+						this.layers[zoomlevel]["layerDiv"].removeChild(this.layers[zoomlevel]["images"][vimg]["array"][o]);
+						//console.log("also removed overlay image"+o);
+					}
+
+				//}catch(e){}
                             delete this.layers[zoomlevel]["images"][vimg]["img"];
                             delete this.layers[zoomlevel]["images"][vimg];
                         }
-                    } else {
-
                     }
+
                 }
             }
         }
@@ -2062,7 +2096,8 @@ This Layers are  NOT tile or vector overlays
             var img = evt.srcElement;
         }
         if (!img.parentNode) return;
-        img.parentNode.removeChild(img);
+        //img.parentNode.removeChild(img);
+	img.setAttribute("src","http://khtml.org/notfound.png");
         //evt.target.style.backgroundColor="lightgrey";
         this.imgLoaded(evt);
     }
@@ -2202,6 +2237,9 @@ This Layers are  NOT tile or vector overlays
         this.map.style.top = this.mapsize.height / 2 + "px";
         //this.mapParent.appendChild(this.clone);
         var center = this.getCenter();
+	if(!center){
+		return;
+	}
         var zoom = this.getZoom();
 	//this.clearMap();
         if (zoom) {
@@ -2211,10 +2249,15 @@ This Layers are  NOT tile or vector overlays
 
     //?????????
     this.clearMap=function(){
-	while(this.clone.firstChild){
-		this.clone.removeChild(this.clone.firstChild);
-		//console.log("cleared");
+	if(!this.map)return;
+	while(this.map.firstChild){
+		this.map.removeChild(this.map.firstChild);
+//		console.log("cleared");
 	}
+	while(this.layers.length >0){
+		this.layers.pop();
+	}
+	this.redraw();
     }	
 
     //functions from wiki gps2xy 
@@ -2443,6 +2486,7 @@ This Layers are  NOT tile or vector overlays
     Event.attach(w, "orientationchange", this.reSize, this, false);
     Event.attach(map, "DOMMouseScroll", this.mousewheel, this, false);
     Event.attach(map, "dblclick", this.doubleclick, this, false);
+//    Event.attach(map, "DOMAttrModified", alert(8), this, false);
 }
 
 // Rest of Code ist a Copy from
