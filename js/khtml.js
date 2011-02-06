@@ -438,6 +438,7 @@ khtml.maplib.Map=function(map) {
             var now = (new Date()).getTime();
             if (now - this.mousedownTime2 < this.doubleclickTime2) {
                 this.doubleclick(evt);
+		return;
             }
         }
         this.mousedownTime2 = (new Date()).getTime();
