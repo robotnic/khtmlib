@@ -253,7 +253,7 @@ khtml.maplib.Map=function(map) {
             var that = this;
             clearTimeout(this.zoomOutInterval);
             var tempFunction = function () {
-                that.autoZoomOut()
+                //that.autoZoomOut()
             };
             this.zoomOutInterval = window.setInterval(tempFunction, 20);
         }
@@ -2463,11 +2463,13 @@ This Layers are  NOT tile or vector overlays
 			this.css3d = true;   //linux for example is ok
 	    }
     }
+    if (navigator.userAgent.indexOf("iPhone OS") != -1) {
+        this.css3d = true;
+    }
     if (navigator.userAgent.indexOf("Android") != -1) {
         this.css3d = false;
     }
         
-
     if (this.internetExplorer) {
         var w = map;
     } else {
@@ -2487,6 +2489,12 @@ This Layers are  NOT tile or vector overlays
     Event.attach(w, "orientationchange", this.reSize, this, false);
     Event.attach(map, "DOMMouseScroll", this.mousewheel, this, false);
     Event.attach(map, "dblclick", this.doubleclick, this, false);
+	if(typeof(this.keydown)=="function"){
+	    Event.attach(w, "keydown", this.keydown, this, false);
+	    Event.attach(w, "keyup", this.keyup, this, false);
+	}
+	
+
 //    Event.attach(map, "DOMAttrModified", alert(8), this, false);
 }
 
