@@ -2,7 +2,7 @@ khtml.maplib.Vector=function(){
 	this.lineArray=new Array();
 	this.dropCount=0;
 	this.stopit=false;
-	this.backend="canvas";
+	this.backend="svg";
 	if (navigator.userAgent.indexOf("MSIE") != -1) {
 		if(getInternetExplorerVersion() < 9){
 			this.backend="vml";
@@ -58,17 +58,57 @@ khtml.maplib.Vector=function(){
 		this.vectorEl=this.createVectorElement(themap);
 		themap.overlayDiv.appendChild(this.vectorEl);
 	}
-	this.addline=function(line,style){
-		var geo=new Object();
-		geo.line=line;
-		geo.style=style;
-		this.lineArray.splice(0,0,geo);
-		this.makeBounds(line);
+	this.createPolyline=function(pointArray){
+
+                var polyline=new Object;
+                polyline.style=new Object;
+                polyline.events=new Object;
+                polyline.tags=new Array;
+                polyline.className=null;
+                polyline.close=false;
+                polyline.id=null;
+                polyline.holes=new Array;
+		polyline.cutout=function(points){
+			var holePoints=parseLine(points);
+			//console.log(holePoints.length);
+			polyline.holes.push(holePoints);
+			return polyline.holes[polyline.holes.length -1];
+		}
+                polyline.points=parseLine(pointArray);
+                
+                this.lineArray.unshift(polyline);
+		this.makeBounds(polyline.points);
+                return polyline;
+
 	}
+
+	function parseLine(pointArray){
+                if(pointArray){
+                        if(typeof(pointArray)=="string"){
+                                points=new Array();
+                                var pa=pointArray.split(" ");
+                                for(var i=0; i < pa.length;i++){
+                                        var point=pa[i].split(",");
+                                        point[0]=parseFloat(point[0]);
+                                        point[1]=parseFloat(point[1]);
+                                        points.push(new khtml.maplib.Point(point[0],point[1]));
+                                }
+                        }
+                        if(typeof(pointArray)=="object"){
+                                points=pointArray;
+                        }
+                }else{
+                        points=new Array();
+                }
+		return points;
+	}
+
 	this.cancel=function(){
 		this.stopit = true;
 	}
 	this.render=function(a){
+		var intZoom=Math.floor(this.themap.zoom());
+		this.vectorEl.setAttribute("class","z"+intZoom);
 		if(this.stopit){
 			//stop rendering vectors
 			this.stopit=false;
@@ -89,7 +129,7 @@ khtml.maplib.Vector=function(){
 			}
 		}
 		if(a==null){
-			if(this.oldZoom==this.themap.zoom()){
+			if(this.oldZoom==this.themap.zoom() &&(this.themap.moveX!=this.lastMoveX || this.themap.moveY!=this.lastMoveY)){
 				//this.oldVectorEl=this.vectorEl;
 				//this.vectorEl=this.createVectorElement(this.themap);
 				var dx=Math.round((this.themap.moveX - this.lastMoveX)*this.themap.faktor*this.themap.sc);
@@ -110,7 +150,6 @@ khtml.maplib.Vector=function(){
 			var a=this.lineArray.length -1;
 		}
 		if(a < 0){
-
 			if(this.oldVectorEl && this.oldVectorEl.parentNode ){
 				this.oldVectorEl.parentNode.replaceChild(this.vectorEl,this.oldVectorEl);
 				this.vectorEl.style.display="";
@@ -126,8 +165,9 @@ khtml.maplib.Vector=function(){
 		this.dropped=null;
 
 		//set styles
-		var l=this.lineArray[a].line;
+		var l=this.lineArray[a].points;
 		var style=this.lineArray[a].style;
+		var close=this.lineArray[a].close;
 		if(style.stroke){
 			var stroke=style.stroke;
 		}else{
@@ -138,11 +178,13 @@ khtml.maplib.Vector=function(){
 		}else{
 			var fill="none";
 		}
-		if(style.strokeWidth){
+			if(style.strokeWidth){
 			var strokeWidth=style.strokeWidth;
 		}else{
 			var strokeWidth=1;
 		}
+
+
 
 		//initialize the polyline 
 		switch(this.backend){
@@ -154,9 +196,34 @@ khtml.maplib.Vector=function(){
 				break;
 			case "svg":
 				var path=document.createElementNS("http://www.w3.org/2000/svg","path");
+				if(this.lineArray[a].className!=null){
+					path.setAttribute("class",this.lineArray[a].className);
+					path.polyline=this.lineArray[a];
+				}
+				if(this.lineArray[a].id!=null){
+					path.setAttribute("id",this.lineArray[a].id);
+				}
+				for(var ev in this.lineArray[a].events){
+					Event.attach(path, ev, this.lineArray[a].events[ev], this, false);
+				}
+				for(var prop in this.lineArray[a].style){
+					var name="";
+					for(var w=0;w < prop.length;w++){
+						var chr=prop[w];
+						if(chr.match(/[A-Z]/)){
+							name=name+"-"+chr.toLowerCase();
+						}else{
+							name=name+chr;
+						}
+					}
+					//path.setAttribute(name,this.lineArray[a].style[prop]);
+					path.style[name]=this.lineArray[a].style[prop];
+				}
+				/*
 				path.setAttribute("stroke",stroke);
 				path.setAttribute("stroke-width",strokeWidth);
 				path.setAttribute("fill",fill);
+				*/
 				break;
 			case "vml":
 				var path=document.createElement("v:polyline");
@@ -221,6 +288,27 @@ khtml.maplib.Vector=function(){
 					
 			}
 		}
+			if(close){
+				d=d+" z";
+			}
+			//holes
+			for(var k=0; k < this.lineArray[a].holes.length;k++){
+				var hole=this.lineArray[a].holes[k];
+				for( var m=0; m < hole.length;m++){
+					var p=this.themap.latlngToXY(hole[m]);
+					var x=Math.round(p["x"]);
+					var y=Math.round(p["y"]);
+					
+					if(m==0){
+						d+=" M"+x+","+y;
+					}else{
+						d+=" L"+x+","+y;
+					}
+				}
+				if(close){
+					d=d+" z";
+				}
+			}
 
 		//show path
 		switch(this.backend){
@@ -239,9 +327,9 @@ khtml.maplib.Vector=function(){
 				break;	
 			case "svg":
 				if(style.close){
-					d=d+" z";
+					//d=d+" z";
 				}
-				if(style.cutout){
+				if(this.lineArray[a].holes.length >1000){
 					if(this.lastpath){	
 						var d=this.lastpath.getAttribute("d")+" "+d;
 						this.lastpath.setAttribute("d",d);
@@ -251,6 +339,9 @@ khtml.maplib.Vector=function(){
 					}
 				}else{
 					path.setAttribute("d",d);
+					if(this.lineArray[a].holes.length >0){
+						path.setAttribute("fill-rule","evenodd");
+					}
 					this.vectorEl.appendChild(path);
 					this.lastpath=path;
 				}
