@@ -3,6 +3,7 @@ khtml.maplib.Vector=function(){
 	this.dropCount=0;
 	this.stopit=false;
 	this.backend="svg";
+	this.svgStyleInterface=false;
 	if (navigator.userAgent.indexOf("MSIE") != -1) {
 		if(getInternetExplorerVersion() < 9){
 			this.backend="vml";
@@ -206,6 +207,7 @@ khtml.maplib.Vector=function(){
 				for(var ev in this.lineArray[a].events){
 					Event.attach(path, ev, this.lineArray[a].events[ev], this, false);
 				}
+				var ffStyleString="";
 				for(var prop in this.lineArray[a].style){
 					var name="";
 					for(var w=0;w < prop.length;w++){
@@ -217,7 +219,14 @@ khtml.maplib.Vector=function(){
 						}
 					}
 					//path.setAttribute(name,this.lineArray[a].style[prop]);
-					path.style[name]=this.lineArray[a].style[prop];
+					if(this.svgStyleInterface){
+						path.style[name]=this.lineArray[a].style[prop];
+					}else{
+						ffStyleString=ffStyleString+name+":"+this.lineArray[a].style[prop]+";";
+					}
+				}
+				if(!this.svgStyleInterface){
+					path.setAttribute("style",ffStyleString);
 				}
 				/*
 				path.setAttribute("stroke",stroke);
