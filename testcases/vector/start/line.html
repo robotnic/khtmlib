@@ -1,0 +1,41 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<style type="text/css">
+#map{
+width:800px;
+height:500px;
+}
+</style>
+
+<script type="text/javascript" src="../../../js/khtml.js"> </script>
+<script type="text/javascript" src="../../../js/vector.js"> </script>
+<script type="text/javascript">
+
+var mr=new Object(khtml.maplib);
+var map=null;
+var v=null;
+
+function init(){
+	map=new mr.Map(document.getElementById("map"));  //dom element
+	var center=new mr.Point(48.2,15.6);  //latitude, longitude
+	map.centerAndZoom(center,2); //12 = zoomlevel
+//	map.wheelSpeedConfig["digizoom"]=false;
+	//makeline();
+	v=new mr.Vector()
+	var line=v.createPolyline("10,10 40,10 10,40");
+	line.style.stroke="red";
+	line.style.strokeWidth="4";
+	line.style.fill="none";
+	map.addOverlay(v);
+}
+
+
+</script>
+</head>
+<body onload="init()" >
+<h1>Polyline on map</h1>
+<div id="map" > </div>
+ 
+</body>
+</html>

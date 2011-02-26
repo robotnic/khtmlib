@@ -1,0 +1,55 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<style type="text/css">
+#map{
+width:800px;
+height:500px;
+}
+.building{
+stroke:red;
+fill:yellow;
+opacity:0.4;
+}
+.building:hover{
+fill:white;
+stroke:black;
+}
+</style>
+
+<script type="text/javascript" src="../../../js/khtml.js"> </script>
+<script type="text/javascript" src="../../../js/vector.js"> </script>
+<script type="text/javascript">
+
+var mr=new Object(khtml.maplib);
+var map=null;
+var v=null;
+
+function init(){
+	map=new mr.Map(document.getElementById("map"));  //dom element
+	var center=new mr.Point(48.2,15.6);  //latitude, longitude
+	map.centerAndZoom(center,2); //12 = zoomlevel
+//	map.wheelSpeedConfig["digizoom"]=false;
+	//makeline();
+	v=new mr.Vector()
+	var lineArray=new Array();
+	var p1=new mr.Point(48,1);
+	var p3=new mr.Point(59.2,20);
+	var p2=new mr.Point(48.2,10);
+	var p4=new mr.Point(59,10);
+	var p5=new mr.Point(48,1);
+	var line=v.createPolyline([p1,p2,p3,p4,p5]);
+	line.className="building";
+	map.addOverlay(v);
+}
+
+
+</script>
+</head>
+<body onload="init()" >
+<h1>Have a look at the html source to see what's going on</h1>
+<div id="map" > </div>
+ 
+</body>
+</html>

@@ -1,0 +1,73 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<style type="text/css">
+#map{
+width:800px;
+height:500px;
+}
+.poly{
+stroke:black;
+stroke-width:1;
+fill:none;
+opacity:0.1;
+}
+.poly10{
+stroke:black;
+stroke-width:0.5;
+fill:none;
+}
+</style>
+
+<script type="text/javascript" src="../../../js/khtml.js"> </script>
+<script type="text/javascript" src="../../../js/vector.js"> </script>
+<script type="text/javascript">
+
+var mr=new Object(khtml.maplib);
+var map=null;
+var v=null;
+var line=null;
+
+function init(){
+	map=new mr.Map(document.getElementById("map"));  //dom element
+	var center=new mr.Point(48.2,15.6);  //latitude, longitude
+	map.centerAndZoom(center,1); //12 = zoomlevel
+//	map.wheelSpeedConfig["digizoom"]=false;
+	//makeline();
+	v=new mr.Vector()
+	map.addOverlay(v);
+	makelines();
+}
+
+function makelines(){
+	for(var i=-70;i< 70;i++){
+		var p1=new mr.Point(i,-180);
+		var p2=new mr.Point(i,180);
+		var line=v.createPolyline([p1,p2]);
+		if(Math.floor(i/10)==i/10){
+			line.className="poly10";
+		}else{
+			line.className="poly";
+		}
+	}
+	for(var i=-180;i< 180;i++){
+		var p1=new mr.Point(-70,i);
+		var p2=new mr.Point(70,i);
+		var line=v.createPolyline([p1,p2]);
+		if(Math.floor(i/10)==i/10){
+			line.className="poly10";
+		}else{
+			line.className="poly";
+		}
+	}
+}
+
+
+</script>
+</head>
+<body onload="init()" >
+<h1>1 deg grid</h1>
+<div id="map" > </div>
+ 
+</body>
+</html>

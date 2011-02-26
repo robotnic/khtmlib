@@ -1,0 +1,55 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<style type="text/css">
+#map{
+width:800px;
+height:500px;
+}
+.poly{
+stroke:black;
+stroke-width:1;
+fill:none;
+}
+</style>
+
+<script type="text/javascript" src="../../../js/khtml.js"> </script>
+<script type="text/javascript" src="../../../js/vector.js"> </script>
+<script type="text/javascript">
+
+var mr=new Object(khtml.maplib);
+var map=null;
+var v=null;
+var line=null;
+
+function init(){
+	map=new mr.Map(document.getElementById("map"));  //dom element
+	var center=new mr.Point(48.2,15.6);  //latitude, longitude
+	map.centerAndZoom(center,1); //12 = zoomlevel
+//	map.wheelSpeedConfig["digizoom"]=false;
+	//makeline();
+	v=new mr.Vector()
+	line=v.createPolyline("0,-160 1,-160");
+	line.className="poly";
+	map.addOverlay(v);
+	setInterval("moveit()",20);
+}
+
+function moveit(){
+	var lastpoint=line.points[line.points.length -1];
+	var newlat=lastpoint.lat() + (Math.random() -0.5)*5;
+	var newlng=lastpoint.lng() + (Math.random() *0.5);
+	var newpoint=new mr.Point(newlat,newlng);
+	line.points.push(newpoint);
+	v.render();
+}
+
+
+</script>
+</head>
+<body onload="init()" >
+<h1>Have a look at the html source to see what's going on</h1>
+<div id="map" > </div>
+ 
+</body>
+</html>

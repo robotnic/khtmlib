@@ -1,0 +1,57 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<style type="text/css">
+#map{
+width:800px;
+height:500px;
+}
+.poly{
+stroke:black;
+fill:yellow;
+opacity:0.5;
+}
+</style>
+
+<script type="text/javascript" src="../../../js/khtml.js"> </script>
+<script type="text/javascript" src="../../../js/vector.js"> </script>
+<script type="text/javascript">
+
+var mr=new Object(khtml.maplib);
+var map=null;
+var v=null;
+var line=null;
+
+function init(){
+	map=new mr.Map(document.getElementById("map"));  //dom element
+	var center=new mr.Point(48.2,15.6);  //latitude, longitude
+	map.centerAndZoom(center,2); //12 = zoomlevel
+//	map.wheelSpeedConfig["digizoom"]=false;
+	//makeline();
+	v=new mr.Vector()
+	line=v.createPolyline("10,10 40,10 10,40 ");
+	line.className="poly";
+	map.addOverlay(v);
+	setInterval("moveit()",100);
+}
+
+function moveit(){
+	for(var i=0; i< line.points.length;i++){
+		var lat=line.points[i].lat()+(Math.random() -0.5);
+		var lng=line.points[i].lng()+(Math.random() -0.5);
+		line.points[i].lat(lat);
+		line.points[i].lng(lng);
+		v.render();
+	}
+}
+
+
+</script>
+</head>
+<body onload="init()" >
+<h1>Dancing Polyline</h1>
+<p>Move Points of existing Polyline</p>
+<div id="map" > </div>
+ 
+</body>
+</html>
