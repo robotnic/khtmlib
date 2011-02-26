@@ -1,0 +1,54 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<style type="text/css">
+#map{
+width:400px;
+height:300px;
+}
+.house{
+	stroke:black;
+	fill:brown;
+	opacity:0.7;
+}
+</style>
+<script type="text/javascript" src="../../../js/khtml.js"> </script>
+<script type="text/javascript" src="../../../js/vector.js"> </script>
+<script type="text/javascript">
+
+var mr=new Object(khtml.maplib);  //choose map render library
+
+function init(){
+	/*--------------
+	Initialize the map
+	---------------*/
+	var map=new mr.Map(document.getElementById("map"));  //dom element
+	var center=new mr.Point(48.2,15.6);  //point will be the center of map - latitude, longitude
+	map.centerAndZoom(center,6); //center of map,zoomlevel
+
+	/*--------------
+	building with courtyards on vector layer
+	---------------*/
+	var layer=new mr.Vector();  //create a vector layer
+	var line=layer.createPolyline("48,15 48,16 49,16 49,15");  //draw a line
+
+	//cut holes
+	line.cutout("48.2,15.2 48.2,15.8 48.3,15.8 48.3,15.2");
+	line.cutout("48.4,15.2 48.4,15.8 48.8,15.8 48.8,15.2");
+
+	line.close=true; //close to polygon
+
+	line.className="house"; //do the styling
+
+	map.addOverlay(layer); //activate layer
+	
+}
+</script>
+</head>
+<body onload="init()">
+<h1>CSS Styling</h1>
+Vectors styled by css
+<div id="map"> </div>
+ 
+</body>
+</html>
