@@ -90,6 +90,7 @@ khtml.maplib.Vector=function(){
                                 var pa=pointArray.split(" ");
                                 for(var i=0; i < pa.length;i++){
                                         var point=pa[i].split(",");
+					if(point.length !=2) continue;
                                         point[0]=parseFloat(point[0]);
                                         point[1]=parseFloat(point[1]);
                                         points.push(new khtml.maplib.Point(point[0],point[1]));
