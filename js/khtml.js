@@ -1391,6 +1391,8 @@ This Layers are  NOT tile or vector overlays
     this.doTheOverlayes=true;
     this.finalDraw=false;
     this.layerOldZoom=0;
+    this.moveDelayedX=0;
+    this.moveDelayedY=0;
     this.layer = function (map, lat, lng, moveX, moveY, zoom) {
 			var delta=(new Date()) - this.startZoomTime;
 	this.stopRenderOverlays();
@@ -1414,12 +1416,18 @@ This Layers are  NOT tile or vector overlays
 
                 if (this.blocked){
 			var delta=(new Date()) - this.startZoomTime;
+			this.moveDelayedX=this.moveDelayedX+moveX;
+			this.moveDelayedY=this.moveDelayedY+moveY;
 			return;
 		}
             }
             this.blocked = true;
 		
         //}
+	moveX=this.moveDelayedX+moveX;
+	moveY=this.moveDelayedY+moveY;
+	this.moveDelayedX=0;
+	this.moveDelayedY=0;
 
 	//hide all zoomlayers
 	//this.layers[this.visibleZoom]["layerDiv"].style.visibility;
