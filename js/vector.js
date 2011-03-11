@@ -227,7 +227,9 @@ khtml.maplib.Vector=function(){
 					}
 				}
 				if(!this.svgStyleInterface){
-					path.setAttribute("style",ffStyleString);
+					if(ffStyleString!=""){
+						path.setAttribute("style",ffStyleString);
+					}
 				}
 				/*
 				path.setAttribute("stroke",stroke);
