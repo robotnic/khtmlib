@@ -39,7 +39,7 @@ khtml.maplib.Map.prototype.moveit=function(x,y){
 	var dx=x/steps;
 	var dy=y/steps;
 	for(var i=0; i < steps;i++){
-		var f=Math.cos(3*(-steps/2+i)/steps)*20;
+		var f=Math.cos(3*(-steps/2+i)/steps)*5;
 		this.moveitexec(dx*f,dy*f,i);
 	}
 }

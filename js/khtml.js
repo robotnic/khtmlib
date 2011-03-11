@@ -1071,8 +1071,9 @@ khtml.maplib.Map=function(map) {
     }
 
     this.moveXY=function(x,y){
-	this.moveX=parseFloat(x)/ this.faktor / this.sc;
-	this.moveY=parseFloat(y)/ this.faktor / this.sc;
+	this.moveX=parseFloat(x)/ this.faktor / this.sc +this.moveDelayedX;
+	this.moveY=parseFloat(y)/ this.faktor / this.sc +this.moveDelayedY;
+
 	this.setCenter2(this.center(),this.zoom());
     }	
 
@@ -1416,16 +1417,14 @@ This Layers are  NOT tile or vector overlays
 
                 if (this.blocked){
 			var delta=(new Date()) - this.startZoomTime;
-			this.moveDelayedX=this.moveDelayedX+moveX;
-			this.moveDelayedY=this.moveDelayedY+moveY;
+			this.moveDelayedX=moveX;  //used in method moveXY
+			this.moveDelayedY=moveY;
 			return;
 		}
             }
             this.blocked = true;
 		
         //}
-	moveX=this.moveDelayedX+moveX;
-	moveY=this.moveDelayedY+moveY;
 	this.moveDelayedX=0;
 	this.moveDelayedY=0;
 
