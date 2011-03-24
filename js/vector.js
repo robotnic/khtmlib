@@ -3,12 +3,16 @@ khtml.maplib.Vector=function(){
 	this.dropCount=0;
 	this.stopit=false;
 	this.backend="svg";
+	if (navigator.userAgent.indexOf("Android") != -1) {
+		this.backend="canvas";
+	}
 	this.svgStyleInterface=false;
 	if (navigator.userAgent.indexOf("MSIE") != -1) {
 		if(getInternetExplorerVersion() < 9){
 			this.backend="vml";
 		}
 	}
+	this.canvasClassStyles=new Array();
 
 	this.boundsSouth=90;
 	this.boundsNorth=-90;
@@ -16,7 +20,14 @@ khtml.maplib.Vector=function(){
 	this.boundsEast=-180;
 
 	this.renderbackend=function(render){
+
 		this.backend=render;
+
+		this.themap.overlayDiv.removeChild(this.vectorEl);
+		this.vectorEl=this.createVectorElement(this.themap);
+		this.themap.overlayDiv.appendChild(this.vectorEl);
+
+		this.render();
 	}
 
 	//create a svg, canvas or vml element
@@ -168,22 +179,48 @@ khtml.maplib.Vector=function(){
 
 		//set styles
 		var l=this.lineArray[a].points;
-		var style=this.lineArray[a].style;
-		var close=this.lineArray[a].close;
-		if(style.stroke){
-			var stroke=style.stroke;
-		}else{
-			var stroke="black";
-		}
-		if(style.fill){
-			var fill=style.fill;
-		}else{
-			var fill="none";
-		}
+		var className=this.lineArray[a].className;
+		if(this.backend=="canvas"){
+			if(!className)className="khtmlDummyClassname9483";  //hopefully nobody will use this classname
+			if(!this.canvasClassStyles[className]){
+				this.canvasClassStyles[className]=getCssStyles(className);
+			}
+
+			var style=this.lineArray[a].style;
+			var close=this.lineArray[a].close;
+			if(style.opacity){
+				var opacity=style.opacity;
+			}else{
+				var opacity=this.canvasClassStyles[className].opacity;
+			}
+			if(style.fillOpacity){
+				var fillOpacity=style.fillOpacity;
+			}else{
+				var fillOpacity=this.canvasClassStyles[className].fillOpacity;
+			}
+			if(style.strokeOpacity){
+				var strokeOpacity=style.strokeOpacity;
+			}else{
+				var strokeOpacity=this.canvasClassStyles[className].strokeOpacity;
+			}
+			if(style.stroke){
+				var stroke=hex2rgba(style.stroke,opacity*strokeOpacity);
+			}else{
+				var stroke=this.canvasClassStyles[className].stroke;
+			}
+			if(style.fill){
+				var fill=hex2rgba(style.fill,opacity*fillOpacity);
+			}else{
+				var fill=this.canvasClassStyles[className].fill;
+			}
+			if(fill!="none"){
+				close=true;
+			}
 			if(style.strokeWidth){
-			var strokeWidth=style.strokeWidth;
-		}else{
-			var strokeWidth=1;
+				var strokeWidth=style.strokeWidth;
+			}else{
+				var strokeWidth=this.canvasClassStyles[className].strokeWidth;
+			}
 		}
 
 
@@ -253,6 +290,7 @@ khtml.maplib.Vector=function(){
 			
 			switch(this.backend){
 				case "canvas":
+					//this.ctx.globalCompositeOperation = 'source-over';
 					if(i==0){
 						this.ctx.moveTo(p["x"],p["y"]);
 					}else{
@@ -300,46 +338,70 @@ khtml.maplib.Vector=function(){
 					
 			}
 		}
-			if(close){
+			if(this.lineArray[a].close){
 				d=d+" z";
 			}
+		if(this.backend=="canvas"){
+			this.ctx.globalCompositeOperation = 'source-over';
+			if(close){
+				this.ctx.closePath();
+				this.ctx.fill();
+			}
+			this.ctx.stroke();
+		}
+
 			//holes
 			for(var k=0; k < this.lineArray[a].holes.length;k++){
 				var hole=this.lineArray[a].holes[k];
+				if(this.backend=="canvas"){
+					this.ctx.beginPath();
+					this.ctx.fillStyle = "#000000";
+					this.ctx.globalCompositeOperation = 'destination-out';
+				}
 				for( var m=0; m < hole.length;m++){
 					var p=this.themap.latlngToXY(hole[m]);
 					var x=Math.round(p["x"]);
 					var y=Math.round(p["y"]);
 					
-					if(m==0){
-						d+=" M"+x+","+y;
-					}else{
-						d+=" L"+x+","+y;
+					switch(this.backend){
+						case "canvas":
+							if(m==0){
+								this.ctx.moveTo(p["x"],p["y"]);
+							}else{
+								this.ctx.lineTo(p["x"],p["y"]);
+							}
+
+						case "svg":
+							if(m==0){
+								d+=" M"+x+","+y;
+							}else{
+								d+=" L"+x+","+y;
+							}
+						break;
 					}
 				}
-				if(close){
-					d=d+" z";
+				if(this.backend=="canvas"){
+					this.ctx.fill();
+					this.ctx.globalCompositeOperation = 'source-over';
+					this.ctx.closePath();
+					this.ctx.stroke();
 				}
+				d=d+" z";
 			}
 
 		//show path
 		switch(this.backend){
 			case "canvas":
-				if(style.cutout){
-					this.ctx.globalCompositeOperation = 'destination-out';
-				}else{
-					this.ctx.globalCompositeOperation = 'source-over';
-				}
-				if(style.close){
-					this.ctx.closePath();
-					this.ctx.fill();
-				}
-				this.ctx.globalCompositeOperation = 'source-over';
+				/*
+				//this.ctx.globalCompositeOperation = 'source-over';
+				this.ctx.closePath();
+				this.ctx.fill();
 				this.ctx.stroke();
+				*/
 				break;	
 			case "svg":
-				if(style.close){
-					//d=d+" z";
+				if(this.lineArray[a].close){
+					d=d+" z";
 				}
 				if(this.lineArray[a].holes.length >1000){
 					if(this.lastpath){	
@@ -480,4 +542,247 @@ khtml.maplib.Vector=function(){
             }
             return rv;
         }	
+
+	//styling canvas with css
+
+	function getCssStyles(klass){
+		var styleObj=new Object;
+		styleObj.stroke="black";
+		styleObj.strokeWidth=1;
+		styleObj.fill="none";
+		styleObj.opacity=1;
+		styleObj.fillOpacity=1;
+		styleObj.strokeOpacity=1;
+
+		for(var i=0; i< document.styleSheets.length;i++){
+			var list=document.styleSheets[i];
+			if (list.cssRules){
+				var rules = list.cssRules;
+			}else{
+				var rules = list.rules;
+			}
+			for (r = 0; r < rules.length; r++)
+			{
+				var csstext=rules[r].style.cssText;
+				selectorText = rules[r].selectorText;
+				if(selectorText!="."+klass)continue
+
+				var cssAr=csstext.split(";");
+				for(var j=0;j<cssAr.length;j++){
+					var stAr=cssAr[j].split(":");
+					if(stAr.length==2){
+						var name=stAr[0].replace(/^\s/, '');
+						var value=stAr[1].replace(/^\s/, '');
+						if(name=="stroke"){
+							styleObj.stroke=value;
+
+						}
+						if(name=="fill"){
+							styleObj.fill=value;
+						}
+						if(name=="stroke-width"){
+							styleObj.strokeWidth=parseFloat(value);
+						}
+						if(name=="opacity"){
+							styleObj.opacity=parseFloat(value);
+						}
+						if(name=="fill-opacity"){
+							styleObj.fillOpacity=parseFloat(value);
+						}
+						if(name=="stroke-opacity"){
+							styleObj.strokeOpacity=parseFloat(value);
+						}
+					
+					}
+				}
+			}
+		}
+
+		if(styleObj.stroke!="none"){
+			styleObj.stroke=hex2rgba(styleObj.stroke,styleObj.opacity*styleObj.strokeOpacity);
+		}
+		if(styleObj.fill!="none"){
+			styleObj.fill=hex2rgba(styleObj.fill,styleObj.opacity*styleObj.fillOpacity);
+		}
+		//console.log(styleObj.fill);
+		return styleObj;
+	}
+
+ var hexArr = ["0","1","2","3","4","5","6","7","8","9","A","B","C","D","E","F"];
+ function hex2rgba(color,opacity) {
+	if(color[0]!="#"){
+		if(color=="none"){
+			return "none";
+		}else{
+			color="#"+colors[color];
+		}
+	}
+        var return_rgbval = "rgba(";
+        if (color.charAt(0) == "#") color = color.substr(1); // Removes the '#' at the start if it's present
+        // Originally color.charAt(0) was written color[0], however this didn't work out in IE
+        if (color.length == 3) color = color.charAt(0)+color.charAt(0)+color.charAt(1)+color.charAt(1)+color.charAt(2)+color.charAt(2);
+        color = color.toUpperCase(); // To be compared with the hexArr array the color string have to be in uppercase
+        var temp_val = 0;
+        for (i=0;i<color.length;i++) {
+               var temp_val2;
+               for (j=0;j<hexArr.length;j++) {
+                     if (color.charAt(i) == hexArr[j]) {temp_val2 = j;break;}
+               }
+               if (i%2 == 0) {temp_val = temp_val2*16}
+               else {
+                    	temp_val += temp_val2;
+                    	return_rgbval += (i==(color.length-1)) ? temp_val+","+opacity+")" : temp_val+", ";
+               }
+
+
+        }
+        return return_rgbval;
+ }
+
+    var colors = {
+        aliceblue: 'f0f8ff',
+        antiquewhite: 'faebd7',
+        aqua: '00ffff',
+        aquamarine: '7fffd4',
+        azure: 'f0ffff',
+        beige: 'f5f5dc',
+        bisque: 'ffe4c4',
+        black: '000000',
+        blanchedalmond: 'ffebcd',
+        blue: '0000ff',
+        blueviolet: '8a2be2',
+        brown: 'a52a2a',
+        burlywood: 'deb887',
+        cadetblue: '5f9ea0',
+        chartreuse: '7fff00',
+        chocolate: 'd2691e',
+        coral: 'ff7f50',
+        cornflowerblue: '6495ed',
+        cornsilk: 'fff8dc',
+        crimson: 'dc143c',
+        cyan: '00ffff',
+        darkblue: '00008b',
+        darkcyan: '008b8b',
+        darkgoldenrod: 'b8860b',
+        darkgray: 'a9a9a9',
+        darkgreen: '006400',
+        darkkhaki: 'bdb76b',
+        darkmagenta: '8b008b',
+        darkolivegreen: '556b2f',
+        darkorange: 'ff8c00',
+        darkorchid: '9932cc',
+        darkred: '8b0000',
+        darksalmon: 'e9967a',
+        darkseagreen: '8fbc8f',
+        darkslateblue: '483d8b',
+        darkslategray: '2f4f4f',
+        darkturquoise: '00ced1',
+        darkviolet: '9400d3',
+        deeppink: 'ff1493',
+        deepskyblue: '00bfff',
+        dimgray: '696969',
+        dodgerblue: '1e90ff',
+        feldspar: 'd19275',
+        firebrick: 'b22222',
+        floralwhite: 'fffaf0',
+        forestgreen: '228b22',
+        fuchsia: 'ff00ff',
+        gainsboro: 'dcdcdc',
+        ghostwhite: 'f8f8ff',
+        gold: 'ffd700',
+        goldenrod: 'daa520',
+        gray: '808080',
+        green: '008000',
+        greenyellow: 'adff2f',
+        honeydew: 'f0fff0',
+        hotpink: 'ff69b4',
+        indianred : 'cd5c5c',
+        indigo : '4b0082',
+        ivory: 'fffff0',
+        khaki: 'f0e68c',
+        lavender: 'e6e6fa',
+        lavenderblush: 'fff0f5',
+        lawngreen: '7cfc00',
+        lemonchiffon: 'fffacd',
+        lightblue: 'add8e6',
+        lightcoral: 'f08080',
+        lightcyan: 'e0ffff',
+        lightgoldenrodyellow: 'fafad2',
+        lightgrey: 'd3d3d3',
+        lightgreen: '90ee90',
+        lightpink: 'ffb6c1',
+        lightsalmon: 'ffa07a',
+        lightseagreen: '20b2aa',
+        lightskyblue: '87cefa',
+        lightslateblue: '8470ff',
+        lightslategray: '778899',
+        lightsteelblue: 'b0c4de',
+        lightyellow: 'ffffe0',
+        lime: '00ff00',
+        limegreen: '32cd32',
+        linen: 'faf0e6',
+        magenta: 'ff00ff',
+        maroon: '800000',
+        mediumaquamarine: '66cdaa',
+        mediumblue: '0000cd',
+        mediumorchid: 'ba55d3',
+        mediumpurple: '9370d8',
+        mediumseagreen: '3cb371',
+        mediumslateblue: '7b68ee',
+        mediumspringgreen: '00fa9a',
+        mediumturquoise: '48d1cc',
+        mediumvioletred: 'c71585',
+        midnightblue: '191970',
+        mintcream: 'f5fffa',
+        mistyrose: 'ffe4e1',
+        moccasin: 'ffe4b5',
+        navajowhite: 'ffdead',
+        navy: '000080',
+        oldlace: 'fdf5e6',
+        olive: '808000',
+        olivedrab: '6b8e23',
+        orange: 'ffa500',
+        orangered: 'ff4500',
+        orchid: 'da70d6',
+        palegoldenrod: 'eee8aa',
+        palegreen: '98fb98',
+        paleturquoise: 'afeeee',
+        palevioletred: 'd87093',
+        papayawhip: 'ffefd5',
+        peachpuff: 'ffdab9',
+        peru: 'cd853f',
+        pink: 'ffc0cb',
+        plum: 'dda0dd',
+        powderblue: 'b0e0e6',
+        purple: '800080',
+        red: 'ff0000',
+        rosybrown: 'bc8f8f',
+        royalblue: '4169e1',
+        saddlebrown: '8b4513',
+        salmon: 'fa8072',
+        sandybrown: 'f4a460',
+        seagreen: '2e8b57',
+        seashell: 'fff5ee',
+        sienna: 'a0522d',
+        silver: 'c0c0c0',
+        skyblue: '87ceeb',
+        slateblue: '6a5acd',
+        slategray: '708090',
+        snow: 'fffafa',
+        springgreen: '00ff7f',
+        steelblue: '4682b4',
+        tan: 'd2b48c',
+        teal: '008080',
+        thistle: 'd8bfd8',
+        tomato: 'ff6347',
+        turquoise: '40e0d0',
+        violet: 'ee82ee',
+        violetred: 'd02090',
+        wheat: 'f5deb3',
+        white: 'ffffff',
+        whitesmoke: 'f5f5f5',
+        yellow: 'ffff00',
+        yellowgreen: '9acd32'
+    };
+
 }
