@@ -36,7 +36,7 @@ khtml.maplib.Gpx=function(gpx,classname) {
 		this.dom=gpx;
 	}	
 
-	this.layer=new mr.Vector()
+	this.layer=new khtml.maplib.Vector()
 	if(classname){
 		this.classname=classname;
 	}
@@ -59,7 +59,7 @@ khtml.maplib.Gpx=function(gpx,classname) {
 			var trkpt=trkpts.item(j);
 			var lat=parseFloat(trkpt.getAttribute("lat"));
 			var lng=parseFloat(trkpt.getAttribute("lon"));
-			pointArray.push(new mr.Point(lat,lng));
+			pointArray.push(new khtml.maplib.Point(lat,lng));
 
 			if(this.minlat > lat) this.minlat=lat;
 			if(this.maxlat < lat) this.maxlat=lat;
@@ -84,9 +84,9 @@ khtml.maplib.Gpx=function(gpx,classname) {
 		this.layer.render();
 	}
 	this.bounds=function(){
-		var sw=new mr.Point(this.minlat,this.minlng);
-		var ne=new mr.Point(this.maxlat,this.maxlng);
-		var bounds=new mr.Bounds(sw,ne);
+		var sw=new khtml.maplib.Point(this.minlat,this.minlng);
+		var ne=new khtml.maplib.Point(this.maxlat,this.maxlng);
+		var bounds=new khtml.maplib.Bounds(sw,ne);
 		return bounds;
 	}
 	this.clear=function(){
