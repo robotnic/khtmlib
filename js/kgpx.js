@@ -5,7 +5,7 @@
 
 khtml.maplib.Gpx=function(gpx,classname) {
 
-	//privat helper function 
+	//privat helper function - makes a dom Object from string
 	function MyParseXml(xmlString)
 	{
 		var xmlDoc;
@@ -30,7 +30,7 @@ khtml.maplib.Gpx=function(gpx,classname) {
 	//  START
 	//
 
-	if(typeof(gpx)=="string"){
+	if(typeof(gpx)=="string"){ //test if parameter is a string or dom object
 		this.dom=MyParseXml(gpx);	
 	}else{
 		this.dom=gpx;
@@ -48,19 +48,20 @@ khtml.maplib.Gpx=function(gpx,classname) {
 
 
 	var trksegs=this.dom.getElementsByTagName("trkseg");
+	//iterate all track segments
 	for(var i=0; i < trksegs.length;i++){
-
 		var pointArray=new Array();
-
 
 		var trkseg=trksegs.item(i);
 		var trkpts=trkseg.getElementsByTagName("trkpt");
+		//iterate all trackpoints
 		for(var j=0; j < trkpts.length;j++){
 			var trkpt=trkpts.item(j);
 			var lat=parseFloat(trkpt.getAttribute("lat"));
 			var lng=parseFloat(trkpt.getAttribute("lon"));
 			pointArray.push(new khtml.maplib.Point(lat,lng));
 
+			//calulate bounds
 			if(this.minlat > lat) this.minlat=lat;
 			if(this.maxlat < lat) this.maxlat=lat;
 			if(this.minlng > lng) this.minlng=lng;
@@ -78,9 +79,11 @@ khtml.maplib.Gpx=function(gpx,classname) {
 
 
 	this.init=function(mapObj){
-			this.layer.init(mapObj);
+		// call method in kvector.js
+		this.layer.init(mapObj);
 	}
 	this.render=function(){
+		// call method in kvector.js
 		this.layer.render();
 	}
 	this.bounds=function(){
