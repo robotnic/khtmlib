@@ -478,7 +478,7 @@ khtml.maplib.Vector=function(){
 			if((this.oldPoint["y"] < 0)&&(p["y"]<0)){
 				return false
 			}
-			if((this.oldPoint["x"] > this.themap.mapsize.width)&&(p["x"]>this.themap.mapsize.width0)){
+			if((this.oldPoint["x"] > this.themap.mapsize.width)&&(p["x"]>this.themap.mapsize.width)){
 				return false
 			}
 			if((this.oldPoint["y"] > this.themap.mapsize.height)&&(p["y"]>this.themap.mapsize.height)){
